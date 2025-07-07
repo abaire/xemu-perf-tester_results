@@ -3,6 +3,8 @@ xemu-perf-tester_results
 
 Archived performance tester results for [xemu](https://xemu.app)
 
+[Results browsable on GitHub pages](https://abaire.github.io/xemu-perf-tester_results/)
+
 # Submitting results
 
 ## Setup
