@@ -89,7 +89,11 @@ def _expand_gpu_info(result: dict[str, Any]):
     result["gpu_glsl_version"] = None
 
     for line in result["xemu_machine_info"].splitlines():
-        key, value = line.split(": ", maxsplit=1)
+        entry = line.split(": ", maxsplit=1)
+        if len(entry) != 2:
+            continue
+
+        key, value = entry
         if key == "GL_VENDOR":
             result["gpu_vendor"] = value
         elif key == "GL_RENDERER":
