@@ -1,0 +1,1 @@
+xemu-perf-tester>=0.1.0

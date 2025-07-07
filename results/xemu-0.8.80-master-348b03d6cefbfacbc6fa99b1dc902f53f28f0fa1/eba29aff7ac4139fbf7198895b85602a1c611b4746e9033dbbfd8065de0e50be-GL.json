@@ -1,0 +1,96 @@
+{
+  "iso": "xemu-perf-tests-v2025-07-07_00-41-56-226914996.iso",
+  "suite_allowlist": null,
+  "xemu_version": "xemu-0.8.80-master-348b03d6cefbfacbc6fa99b1dc902f53f28f0fa1",
+  "xemu_machine_info": "xemu_version: 0.8.80\nxemu_branch: master\nxemu_commit: 348b03d6cefbfacbc6fa99b1dc902f53f28f0fa1\nxemu_date: Sat Jun 21 20:29:01 UTC 2025\nxemu_settings_get_base_path: base path: /Users/abaire/development/xbox/xemu-perf-tester_results/cache/xemu-macos-v0.8.80/xemu.app/Contents/Resources/\nxemu_settings_get_path: config path: /Users/abaire/development/xbox/xemu-perf-tester_results/cache/xemu-macos-v0.8.80/xemu.app/Contents/Resources/xemu.toml\nCPU: \nOS_Version: Version 15.5 (Build 24F74)\nGL_VENDOR: Apple\nGL_RENDERER: Apple M3 Max\nGL_VERSION: 4.1 Metal - 89.4\nGL_SHADING_LANGUAGE_VERSION: 4.10",
+  "machine_info": {
+    "cpu_manufacturer": "Apple M3 Max",
+    "cpu_vendor_id": "N/A",
+    "cpu_stepping": "N/A",
+    "cpu_model": "N/A",
+    "cpu_family": "N/A",
+    "cpu_cores": 16,
+    "hw_threads": 16,
+    "os_system": "Darwin",
+    "os_release": "24.5.0",
+    "os_version": "Darwin Kernel Version 24.5.0: Tue Apr 22 19:52:00 PDT 2025; root:xnu-11417.121.6~2/RELEASE_ARM64_T6031",
+    "os_machine_type": "arm64",
+    "cpu_freq_max": 4056,
+    "os_macos_version": [
+      "15.5",
+      [
+        "",
+        "",
+        ""
+      ],
+      "arm64"
+    ]
+  },
+  "renderer": "GL",
+  "results": [
+    {
+      "name": "High vertex count::HighVtxCount-arrays",
+      "iterations": 100,
+      "total_us": 3331,
+      "average_us": 33,
+      "min_us": 25,
+      "max_us": 601
+    },
+    {
+      "name": "High vertex count::HighVtxCount-inlinearrays",
+      "iterations": 10,
+      "total_us": 254030,
+      "average_us": 25403,
+      "min_us": 24289,
+      "max_us": 28173
+    },
+    {
+      "name": "High vertex count::HighVtxCount-inlinebuffers",
+      "iterations": 5,
+      "total_us": 1059993,
+      "average_us": 211998,
+      "min_us": 210577,
+      "max_us": 213839
+    },
+    {
+      "name": "High vertex count::HighVtxCount-inlineelements",
+      "iterations": 50,
+      "total_us": 100602,
+      "average_us": 2012,
+      "min_us": 1545,
+      "max_us": 2468
+    },
+    {
+      "name": "High vertex count::MixedVtxCount-arrays",
+      "iterations": 50,
+      "total_us": 7411,
+      "average_us": 148,
+      "min_us": 131,
+      "max_us": 326
+    },
+    {
+      "name": "High vertex count::MixedVtxCount-inlinearrays",
+      "iterations": 4,
+      "total_us": 502099,
+      "average_us": 125524,
+      "min_us": 123458,
+      "max_us": 127280
+    },
+    {
+      "name": "High vertex count::MixedVtxCount-inlinebuffers",
+      "iterations": 2,
+      "total_us": 2107829,
+      "average_us": 1053914,
+      "min_us": 1049338,
+      "max_us": 1058480
+    },
+    {
+      "name": "High vertex count::MixedVtxCount-inlineelements",
+      "iterations": 10,
+      "total_us": 100479,
+      "average_us": 10047,
+      "min_us": 9750,
+      "max_us": 10446
+    }
+  ]
+}
