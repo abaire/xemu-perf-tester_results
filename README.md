@@ -133,6 +133,19 @@ cd <someplace>/xemu-perf-tester_results
     ./run.sh -X <path/to/xemu>
     ```
 
+##### Using a development build of xemu on macOS
+
+Some extra flags are needed to utilize a development build of xemu. You will
+need to set the `XEMU_DYLD_FALLBACK_LIBRARY_PATH` environment variable to point
+at a valid xemu.app binary and will need to pass the `--no-bundle` argument to
+`xemu-perf-run` to prevent it from attempting to find a `xemu.app` bundle
+itself.
+
+```shell
+XEMU_DYLD_FALLBACK_LIBRARY_PATH=<path_to_xemu_repo>/dist/xemu.app/Contents/Libraries/arm64 \
+  ./run.sh -X <path_to_xemu_repo>/build/qemu-system-i386 --no-bundle
+```
+
 ## Submit your results
 
 1. Commit the results to your fork

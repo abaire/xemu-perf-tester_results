@@ -11,7 +11,8 @@ if [[ ! -d venv ]]; then
   exit 1
 fi
 
-. venv/bin/activate
-xemu-perf-run "$@"
+if [[ -n "${XEMU_DYLD_FALLBACK_LIBRARY_PATH-}" ]]; then
+  export DYLD_FALLBACK_LIBRARY_PATH="${XEMU_DYLD_FALLBACK_LIBRARY_PATH}"
+fi
 
-
+./venv/bin/xemu-perf-run "$@"
