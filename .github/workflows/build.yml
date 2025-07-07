@@ -33,14 +33,14 @@ jobs:
 
       - name: Generate site
         run: |
-          pip3 install --break-system-packages -r requirements.txt
-          xemu-perf-render results --output index.html
+          pip3 install --break-system-packages .
+          xemu-perf-render results -o site
 
       - name: Upload site artifact
         uses: actions/upload-artifact@v4
         with:
           name: site
-          path: index.html
+          path: site
 
   deploy-site:
     name: Update the pages site with new content

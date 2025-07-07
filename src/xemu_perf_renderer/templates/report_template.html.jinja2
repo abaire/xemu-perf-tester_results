@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ title }}</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/vega@5"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega-lite@5"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
+</head>
+<body>
+<h1>{{ title }}</h1>
+<div id="charts-container"></div>
+<footer>
+    <div class="controls-container">
+        <div class="control-item">
+            <label for="slice-selector">View charts by:</label>
+            <select id="slice-selector"></select>
+        </div>
+        <div class="control-item">
+            <input type="checkbox" id="outlier-checkbox">
+            <label for="outlier-checkbox">Exclude max outlier</label>
+        </div>
+    </div>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>

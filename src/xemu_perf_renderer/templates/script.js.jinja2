@@ -1,0 +1,265 @@
+/*
+    Report generated on: {{ generation_timestamp }}
+*/
+document.addEventListener("DOMContentLoaded", function () {
+    const allRawData = {{ results_data | tojson | safe }};
+
+    const comparisonSchemes = {
+        "by-cpu": {field: "cpu_manufacturer", title: "CPU"},
+        "by-gpu": {field: "gpu_renderer", title: "GPU"},
+        "by-gpu-vendor": {field: "gpu_vendor", title: "GPU Vendor"},
+        "by-os": {field: "os_system", title: "Operating System"},
+        "by-renderer": {field: "renderer", title: "Renderer Backend"},
+        "by-version": {field: "xemu_version", title: "xemu Version"},
+    };
+
+    const chartsContainer = document.getElementById("charts-container");
+    const selector = document.getElementById("slice-selector");
+    const outlierCheckbox = document.getElementById("outlier-checkbox");
+
+    for (const key in comparisonSchemes) {
+        const option = document.createElement("option");
+        option.value = key;
+        option.textContent = comparisonSchemes[key].title;
+        selector.appendChild(option);
+    }
+
+    const savedMode = localStorage.getItem("xemuPerfChartMode");
+    const savedOutlier = localStorage.getItem("xemuPerfExcludeOutlier");
+
+    if (savedMode && comparisonSchemes[savedMode]) {
+        selector.value = savedMode;
+    } else {
+        selector.value = "by-version";
+    }
+    if (savedOutlier) {
+        outlierCheckbox.checked = (savedOutlier === "true");
+    } else {
+        outlierCheckbox.checked = true;
+    }
+
+    function renderSummaryChart(scheme, processedData, chartConfig) {
+        const summaryChartId = "summary-chart";
+        const summaryChartDiv = document.createElement("div");
+        summaryChartDiv.className = "chart-container";
+        summaryChartDiv.innerHTML = `<h2 class="chart-title">Overall duration (lower is better)</h2><div id="${summaryChartId}"></div>`;
+        chartsContainer.appendChild(summaryChartDiv);
+
+        const summarySpec = {
+            "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+            "description": "A summary chart that sums the average latency for each category across all tests.",
+            "width": {"step": 20},
+            "config": chartConfig,
+            "data": {"values": processedData},
+            "transform": [
+                {
+                    "aggregate": [
+                        {
+                            "op": "mean",
+                            "field": "average_us",
+                            "as": "mean_per_test"
+                        },
+                        {"op": "count", "as": "points_per_test"}
+                    ],
+                    "groupby": ["test_name", scheme.field]
+                },
+                {
+                    "aggregate": [
+                        {
+                            "op": "sum",
+                            "field": "mean_per_test",
+                            "as": "total_score"
+                        },
+                        {
+                            "op": "sum",
+                            "field": "points_per_test",
+                            "as": "total_points"
+                        }
+                    ],
+                    "groupby": [scheme.field]
+                }
+            ],
+            "mark": "bar",
+            "encoding": {
+                "x": {
+                    "field": scheme.field,
+                    "type": "nominal",
+                    "title": scheme.title,
+                    "axis": {"labelAngle": -45}
+                },
+                "y": {
+                    "field": "total_score",
+                    "type": "quantitative",
+                    "title": "Sum of averages"
+                },
+                "color": {
+                    "field": scheme.field,
+                    "type": "nominal",
+                    "title": scheme.title
+                },
+                "tooltip": [
+                    {
+                        "field": scheme.field,
+                        "type": "nominal",
+                        "title": scheme.title
+                    },
+                    {
+                        "field": "total_score",
+                        "type": "quantitative",
+                        "title": "Score",
+                        "format": ",.0f"
+                    },
+                    {
+                        "field": "total_points",
+                        "type": "quantitative",
+                        "title": "Total data points"
+                    }
+                ]
+            }
+        };
+
+        vegaEmbed(`#${summaryChartId}`, summarySpec, {
+            actions: false,
+            tooltip: {theme: "dark"}
+        })
+            .catch(console.error);
+    }
+
+    function renderAllCharts() {
+        const excludeOutliers = outlierCheckbox.checked;
+        const selectedSchemeKey = selector.value;
+        const scheme = comparisonSchemes[selectedSchemeKey];
+        chartsContainer.innerHTML = "";
+
+        localStorage.setItem('xemuPerfChartMode', selectedSchemeKey);
+        localStorage.setItem('xemuPerfExcludeOutlier', excludeOutliers);
+
+        if (!allRawData || allRawData.length === 0) {
+            chartsContainer.innerHTML = "<p>No data available to display.</p>";
+            return;
+        }
+
+        const processedData = allRawData.map(d => {
+            if (excludeOutliers && d.iterations > 1) {
+                const newAverage = (d.total_us - d.max_us) / (d.iterations - 1);
+                return {...d, average_us: newAverage};
+            }
+            return d;
+        });
+
+        const chartConfig = {
+            "axis": {
+                "labelFontSize": 14,
+                "titleFontSize": 16
+            },
+            "legend": {
+                "labelFontSize": 14,
+                "titleFontSize": 16
+            }
+        };
+
+        renderSummaryChart(scheme, processedData, chartConfig);
+
+        const testsByName = processedData.reduce((acc, d) => {
+            (acc[d.test_name] = acc[d.test_name] || []).push(d);
+            return acc;
+        }, {});
+
+        let chartIdCounter = 0;
+        for (const testName in testsByName) {
+            const chartId = `chart-${++chartIdCounter}`;
+            const chartDiv = document.createElement("div");
+            chartDiv.className = "chart-container";
+            chartDiv.innerHTML = `<h3 class="chart-title">${testName} by ${scheme.title}</h3><div id="${chartId}"></div>`;
+            chartsContainer.appendChild(chartDiv);
+
+            const spec = {
+                "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+                "width": {"step": 40},
+                "data": {"values": testsByName[testName]},
+                "selection": {
+                    "grid": {
+                        "type": "interval",
+                        "bind": "scales"
+                    }
+                },
+                "config": chartConfig,
+                "mark": {
+                    "type": "point",
+                    "filled": true,
+                    "size": 60,
+                    "opacity": 0.6,
+                    "clip": false
+                },
+                "encoding": {
+                    "x": {
+                        "field": scheme.field,
+                        "type": "nominal",
+                        "title": scheme.title,
+                        "axis": {"labelAngle": -45}
+                    },
+                    "y": {
+                        "field": "average_us",
+                        "type": "quantitative",
+                        "title": "Avg duration (μs)",
+                        "scale": {"zero": false},
+                        "padding": 0.50
+                    },
+                    "color": {
+                        "field": scheme.field,
+                        "type": "nominal",
+                        "title": scheme.title
+                    },
+                    "tooltip": [
+                        {
+                            "field": "average_us",
+                            "type": "quantitative",
+                            "title": "Avg duration (μs)",
+                            "format": ",.2f"
+                        },
+                        {
+                            "field": "test_name",
+                            "type": "nominal",
+                            "title": "Test"
+                        },
+                        {
+                            "field": "xemu_version",
+                            "type": "nominal",
+                            "title": "xemu Version"
+                        },
+                        {
+                            "field": "os_system",
+                            "type": "nominal",
+                            "title": "OS"
+                        },
+                        {
+                            "field": "cpu_manufacturer",
+                            "type": "nominal",
+                            "title": "CPU"
+                        },
+                        {
+                            "field": "gpu_renderer",
+                            "type": "nominal",
+                            "title": "GPU"
+                        },
+                        {
+                            "field": "renderer",
+                            "type": "nominal",
+                            "title": "Renderer Backend"
+                        }
+                    ]
+                }
+            };
+
+            vegaEmbed(`#${chartId}`, spec, {
+                actions: false,
+                tooltip: {theme: "dark"}
+            })
+                .catch(console.error);
+        }
+    }
+
+    selector.addEventListener("change", renderAllCharts);
+    outlierCheckbox.addEventListener("change", renderAllCharts);
+    renderAllCharts();
+});
