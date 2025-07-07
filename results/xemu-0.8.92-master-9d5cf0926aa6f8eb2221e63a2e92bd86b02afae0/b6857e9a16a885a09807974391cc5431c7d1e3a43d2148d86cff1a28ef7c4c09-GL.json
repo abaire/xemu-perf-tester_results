@@ -29,66 +29,66 @@
     {
       "name": "High vertex count::HighVtxCount-arrays",
       "iterations": 100,
-      "total_us": 4229,
-      "average_us": 42,
+      "total_us": 4710,
+      "average_us": 47,
       "min_us": 33,
-      "max_us": 666
+      "max_us": 667
     },
     {
       "name": "High vertex count::HighVtxCount-inlinearrays",
       "iterations": 10,
-      "total_us": 293834,
-      "average_us": 29383,
-      "min_us": 25203,
-      "max_us": 45915
+      "total_us": 261781,
+      "average_us": 26178,
+      "min_us": 24848,
+      "max_us": 27933
     },
     {
       "name": "High vertex count::HighVtxCount-inlinebuffers",
       "iterations": 5,
-      "total_us": 955007,
-      "average_us": 191001,
-      "min_us": 186189,
-      "max_us": 196712
+      "total_us": 955860,
+      "average_us": 191172,
+      "min_us": 189261,
+      "max_us": 194767
     },
     {
       "name": "High vertex count::HighVtxCount-inlineelements",
       "iterations": 50,
-      "total_us": 105082,
-      "average_us": 2101,
-      "min_us": 1953,
-      "max_us": 2862
+      "total_us": 106491,
+      "average_us": 2129,
+      "min_us": 1982,
+      "max_us": 2974
     },
     {
       "name": "High vertex count::MixedVtxCount-arrays",
       "iterations": 50,
-      "total_us": 11652,
-      "average_us": 233,
-      "min_us": 167,
-      "max_us": 2675
+      "total_us": 10527,
+      "average_us": 210,
+      "min_us": 166,
+      "max_us": 1672
     },
     {
       "name": "High vertex count::MixedVtxCount-inlinearrays",
       "iterations": 4,
-      "total_us": 517573,
-      "average_us": 129393,
-      "min_us": 126786,
-      "max_us": 130637
+      "total_us": 518633,
+      "average_us": 129658,
+      "min_us": 128670,
+      "max_us": 130528
     },
     {
       "name": "High vertex count::MixedVtxCount-inlinebuffers",
       "iterations": 2,
-      "total_us": 1886052,
-      "average_us": 943026,
-      "min_us": 936034,
-      "max_us": 950010
+      "total_us": 1923163,
+      "average_us": 961581,
+      "min_us": 961125,
+      "max_us": 962029
     },
     {
       "name": "High vertex count::MixedVtxCount-inlineelements",
       "iterations": 10,
-      "total_us": 107320,
-      "average_us": 10732,
-      "min_us": 9961,
-      "max_us": 12741
+      "total_us": 114641,
+      "average_us": 11464,
+      "min_us": 10247,
+      "max_us": 13975
     }
   ]
 }
