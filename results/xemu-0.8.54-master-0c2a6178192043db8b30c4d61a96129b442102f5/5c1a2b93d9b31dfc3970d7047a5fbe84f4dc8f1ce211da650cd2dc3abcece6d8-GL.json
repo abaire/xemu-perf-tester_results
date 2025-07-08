@@ -1,0 +1,94 @@
+{
+  "iso": "xemu-perf-tests-v2025-07-08_16-37-11-883515123.iso",
+  "suite_allowlist": null,
+  "xemu_version": "xemu-0.8.54-master-0c2a6178192043db8b30c4d61a96129b442102f5",
+  "xemu_machine_info": "xemu_version: 0.8.54\nxemu_branch: master\nxemu_commit: 0c2a6178192043db8b30c4d61a96129b442102f5\nxemu_date: Fri Apr 18 19:02:11 UTC 2025\nxemu_settings_get_base_path: base path: C:\\Users\\\\Documents\\GitHub\\xemu-perf-tester_results\\cache\\\nxemu_settings_get_path: config path: C:\\Users\\\\Documents\\GitHub\\xemu-perf-tester_results\\cache\\xemu.toml\nCPU: AMD Ryzen 7 5700X 8-Core Processor             \nOS_Version:  22H2\nGL_VENDOR: NVIDIA Corporation\nGL_RENDERER: NVIDIA GeForce RTX 3060 Ti/PCIe/SSE2\nGL_VERSION: 4.0.0 NVIDIA 576.80\nGL_SHADING_LANGUAGE_VERSION: 4.00 NVIDIA via Cg compilerWARNING: Image format was not specified for 'C:\\Users\\Arthur\\Documents\\GitHub\\xemu-perf-tester_results\\cache\\hdd.img' and probing guessed raw.\n         Automatically detecting the format is dangerous for raw images, write operations on block 0 will be restricted.\n         Specify the 'raw' format explicitly to remove the restrictions.\n",
+  "machine_info": {
+    "cpu_manufacturer": "AMD Ryzen 7 5700X 8-Core Processor",
+    "cpu_vendor_id": "AuthenticAMD",
+    "cpu_stepping": 2,
+    "cpu_model": 33,
+    "cpu_family": 25,
+    "cpu_cores": 8,
+    "hw_threads": 16,
+    "os_system": "Windows",
+    "os_release": "10",
+    "os_version": "10.0.19045",
+    "os_machine_type": "AMD64",
+    "cpu_freq_max": 3975.0,
+    "os_win_edition": "Core",
+    "os_win_version": [
+      "10",
+      "10.0.19045",
+      "SP0",
+      "Multiprocessor Free"
+    ]
+  },
+  "renderer": "GL",
+  "results": [
+    {
+      "name": "High vertex count::HighVtxCount-arrays",
+      "iterations": 100,
+      "total_us": 4729,
+      "average_us": 47,
+      "min_us": 35,
+      "max_us": 713
+    },
+    {
+      "name": "High vertex count::HighVtxCount-inlinearrays",
+      "iterations": 10,
+      "total_us": 401646,
+      "average_us": 40164,
+      "min_us": 39165,
+      "max_us": 41486
+    },
+    {
+      "name": "High vertex count::HighVtxCount-inlinebuffers",
+      "iterations": 5,
+      "total_us": 1167094,
+      "average_us": 233418,
+      "min_us": 232928,
+      "max_us": 234211
+    },
+    {
+      "name": "High vertex count::HighVtxCount-inlineelements",
+      "iterations": 50,
+      "total_us": 141668,
+      "average_us": 2833,
+      "min_us": 2370,
+      "max_us": 5640
+    },
+    {
+      "name": "Vertex buffer allocation::MixedVtxAlloc-arrays",
+      "iterations": 10,
+      "total_us": 1310619,
+      "average_us": 131061,
+      "min_us": 128329,
+      "max_us": 132998
+    },
+    {
+      "name": "Vertex buffer allocation::MixedVtxAlloc-inlinearrays",
+      "iterations": 10,
+      "total_us": 961113,
+      "average_us": 96111,
+      "min_us": 92241,
+      "max_us": 99897
+    },
+    {
+      "name": "Vertex buffer allocation::MixedVtxAlloc-inlinebuffers",
+      "iterations": 10,
+      "total_us": 5484308,
+      "average_us": 548430,
+      "min_us": 540823,
+      "max_us": 562006
+    },
+    {
+      "name": "Vertex buffer allocation::MixedVtxAlloc-inlineelements",
+      "iterations": 10,
+      "total_us": 288588,
+      "average_us": 28858,
+      "min_us": 28472,
+      "max_us": 29805
+    }
+  ]
+}
