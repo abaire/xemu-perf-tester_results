@@ -59,6 +59,6 @@ IF NOT EXIST "venv\" (
 
 CALL "venv\Scripts\activate.bat"
 
-xemu-perf-run %*
+xemu-perf-run --block-list-file inputs/block_list.json %*
 
 ENDLOCAL

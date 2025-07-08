@@ -15,4 +15,4 @@ if [[ -n "${XEMU_DYLD_FALLBACK_LIBRARY_PATH-}" ]]; then
   export DYLD_FALLBACK_LIBRARY_PATH="${XEMU_DYLD_FALLBACK_LIBRARY_PATH}"
 fi
 
-./venv/bin/xemu-perf-run "$@"
+./venv/bin/xemu-perf-run --block-list-file inputs/block_list.json "$@"

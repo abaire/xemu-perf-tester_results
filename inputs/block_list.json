@@ -1,0 +1,12 @@
+{
+  "rules": [
+    {
+      "conditions": [
+        "$version < 0.8.54"
+      ],
+      "skipped": [
+        "High vertex count::"
+      ]
+    }
+  ]
+}
