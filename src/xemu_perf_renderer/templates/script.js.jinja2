@@ -235,7 +235,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         name: shortVersion(version),
                         marker: {
                             ...kCommonMarkerConfig,
-                            symbol: testData.map(d => symbolForRendererBackend(d.renderer))
+                            symbol: versionData.map(d => symbolForRendererBackend(d.renderer))
                         },
                         x: versionData.map(d => d[scheme.field]),
                         y: versionData.map(d => d.average_ms),
