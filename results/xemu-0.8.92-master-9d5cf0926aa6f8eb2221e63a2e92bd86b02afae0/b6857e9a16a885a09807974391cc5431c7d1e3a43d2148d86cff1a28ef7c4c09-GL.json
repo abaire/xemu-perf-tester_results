@@ -1,0 +1,94 @@
+{
+  "iso": "xemu-perf-tests-v2025-07-07_00-41-56-226914996.iso",
+  "suite_allowlist": null,
+  "xemu_version": "xemu-0.8.92-master-9d5cf0926aa6f8eb2221e63a2e92bd86b02afae0",
+  "xemu_machine_info": "xemu_version: 0.8.92\nxemu_branch: master\nxemu_commit: 9d5cf0926aa6f8eb2221e63a2e92bd86b02afae0\nxemu_date: Thu Jul  3 04:45:47 UTC 2025\nxemu_settings_get_base_path: base path: C:\\Source\\xemu-perf-tester_results\\cache\\\nxemu_settings_get_path: config path: C:\\Source\\xemu-perf-tester_results\\cache\\xemu.toml\nCPU: AMD Ryzen 9 6900HX with Radeon Graphics        \nOS_Version:  24H2\nGL_VENDOR: ATI Technologies Inc.\nGL_RENDERER: AMD Radeon RX 6600M\nGL_VERSION: 4.0.0 Core Profile Context 25.6.3.250617\nGL_SHADING_LANGUAGE_VERSION: 4.60WARNING: Image format was not specified for 'C:\\Source\\xemu-perf-tester_results\\cache\\hdd.img' and probing guessed raw.\n         Automatically detecting the format is dangerous for raw images, write operations on block 0 will be restricted.\n         Specify the 'raw' format explicitly to remove the restrictions.\n",
+  "machine_info": {
+    "cpu_manufacturer": "AMD Ryzen 9 6900HX with Radeon Graphics",
+    "cpu_vendor_id": "AuthenticAMD",
+    "cpu_stepping": 1,
+    "cpu_model": 68,
+    "cpu_family": 25,
+    "cpu_cores": 8,
+    "hw_threads": 16,
+    "os_system": "Windows",
+    "os_release": "10",
+    "os_version": "10.0.26100",
+    "os_machine_type": "AMD64",
+    "cpu_freq_max": 3301.0,
+    "os_win_edition": "Professional",
+    "os_win_version": [
+      "10",
+      "10.0.26100",
+      "SP0",
+      "Multiprocessor Free"
+    ]
+  },
+  "renderer": "GL",
+  "results": [
+    {
+      "name": "High vertex count::HighVtxCount-arrays",
+      "iterations": 100,
+      "total_us": 4710,
+      "average_us": 47,
+      "min_us": 33,
+      "max_us": 667
+    },
+    {
+      "name": "High vertex count::HighVtxCount-inlinearrays",
+      "iterations": 10,
+      "total_us": 261781,
+      "average_us": 26178,
+      "min_us": 24848,
+      "max_us": 27933
+    },
+    {
+      "name": "High vertex count::HighVtxCount-inlinebuffers",
+      "iterations": 5,
+      "total_us": 955860,
+      "average_us": 191172,
+      "min_us": 189261,
+      "max_us": 194767
+    },
+    {
+      "name": "High vertex count::HighVtxCount-inlineelements",
+      "iterations": 50,
+      "total_us": 106491,
+      "average_us": 2129,
+      "min_us": 1982,
+      "max_us": 2974
+    },
+    {
+      "name": "High vertex count::MixedVtxCount-arrays",
+      "iterations": 50,
+      "total_us": 10527,
+      "average_us": 210,
+      "min_us": 166,
+      "max_us": 1672
+    },
+    {
+      "name": "High vertex count::MixedVtxCount-inlinearrays",
+      "iterations": 4,
+      "total_us": 518633,
+      "average_us": 129658,
+      "min_us": 128670,
+      "max_us": 130528
+    },
+    {
+      "name": "High vertex count::MixedVtxCount-inlinebuffers",
+      "iterations": 2,
+      "total_us": 1923163,
+      "average_us": 961581,
+      "min_us": 961125,
+      "max_us": 962029
+    },
+    {
+      "name": "High vertex count::MixedVtxCount-inlineelements",
+      "iterations": 10,
+      "total_us": 114641,
+      "average_us": 11464,
+      "min_us": 10247,
+      "max_us": 13975
+    }
+  ]
+}
