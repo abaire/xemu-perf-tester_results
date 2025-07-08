@@ -116,10 +116,66 @@ footer {
     display: inline-block;
 }
 
-#search-box {
+#test-filter {
     font-size: 16px;
     padding: 8px 12px;
     border: 1px solid #ccc;
     border-radius: 5px;
     width: 300px;
+}
+
+.data-filter-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+#data-filter {
+    font-size: 16px;
+    padding: 8px 12px;
+    border: 1px solid cornflowerblue;
+    border-radius: 5px;
+    width: 300px;
+}
+
+#data-filter-container {
+    position: relative;
+}
+
+#data-filter-suggestions {
+    display: none;
+    position: absolute;
+    bottom: 100%;
+    margin-bottom: 5px;
+    right: 0;
+    min-width: 100%;
+    white-space: nowrap;
+    word-wrap: break-word;
+    box-sizing: border-box;
+    overflow-x: auto;
+    overflow-y: auto;
+    background-color: #f9f9f9;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.2);
+    z-index: 100;
+    text-align: left;
+    padding: 10px;
+}
+
+#data-filter-suggestions ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+#data-filter-suggestions li {
+    padding: 4px 8px;
+}
+
+.data-filter-suggestion-non-matching-text {
+    color: grey;
+}
+
+.data-filter-suggestion-matching-text {
+    color: black;
 }

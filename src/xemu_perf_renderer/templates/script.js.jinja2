@@ -9,14 +9,29 @@ const kTooltipConfig = {
 const kCommonXAxisConfig = {
     automargin: true,
     tickangle: -25,
-    categoryorder: 'category ascending'
+    categoryorder: "category ascending"
 };
 
 const kCommonMarkerConfig = {
     size: 10
 };
 
+const kSearchableDataFields = [
+    "cpu_manufacturer",
+    "gpu_renderer",
+    "gpu_vendor",
+    "os_system",
+    "renderer",
+    "xemu_version",
+    "machine_info"
+];
+
+const kDebounceTimeoutMilliseconds = 100;
+
+const kMatchingDataItemsPadding = 20;
+
 document.addEventListener("DOMContentLoaded", function () {
+    let debounceTimer;
     const allRawData = {{ results_data | tojson | safe }};
 
     const chartsContainer = document.getElementById("charts-container");
@@ -32,7 +47,10 @@ document.addEventListener("DOMContentLoaded", function () {
         Plotly.purge(fullscreenChartDiv);
     });
 
-    const searchInput = document.getElementById("search-box");
+    const testFilterInput = document.getElementById("test-filter");
+    const dataFilterInput = document.getElementById("data-filter");
+
+    const suggestionsOverlay = document.getElementById("data-filter-suggestions");
 
     const comparisonSchemes = {
         "by-cpu": {field: "cpu_manufacturer", title: "CPU"},
@@ -86,6 +104,7 @@ document.addEventListener("DOMContentLoaded", function () {
     function renderSummaryChart(scheme, processedData) {
         const summaryChartDiv = document.createElement("div");
         summaryChartDiv.className = "chart-container";
+        summaryChartDiv.dataset.testName = "summary-chart";
         chartsContainer.appendChild(summaryChartDiv);
 
         const means = {};
@@ -125,7 +144,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     size: 22
                 },
                 x: 0.5,
-                xanchor: 'center'
+                xanchor: "center"
             },
             xaxis: {
                 ...kCommonXAxisConfig,
@@ -195,34 +214,31 @@ document.addEventListener("DOMContentLoaded", function () {
         const machineData = testData
             .filter(d => d.machine_id_with_renderer === machine_id_with_renderer)
             .sort((a, b) => {
-                const valA = (selectedSchemeKey === 'by-version') ? shortVersion(a[scheme.field]) : a[scheme.field];
-                const valB = (selectedSchemeKey === 'by-version') ? shortVersion(b[scheme.field]) : b[scheme.field];
-                if (typeof valA === 'string') {
+                const valA = (selectedSchemeKey === "by-version") ? shortVersion(a[scheme.field]) : a[scheme.field];
+                const valB = (selectedSchemeKey === "by-version") ? shortVersion(b[scheme.field]) : b[scheme.field];
+                if (typeof valA === "string") {
                     return valA.localeCompare(valB);
                 }
                 return valA - valB;
             });
 
         const lineTrace = {
-            type: 'scatter',
-            mode: 'lines',
-            x: machineData.map(d => (selectedSchemeKey === 'by-version') ? shortVersion(d[scheme.field]) : d[scheme.field]),
+            type: "scatter",
+            mode: "lines",
+            x: machineData.map(d => (selectedSchemeKey === "by-version") ? shortVersion(d[scheme.field]) : d[scheme.field]),
             y: machineData.map(d => d.average_ms),
             line: {
-                color: 'rgba(60, 20, 60, 0.7)',
+                color: "rgba(60, 20, 60, 0.7)",
                 width: 2
             },
-            hoverinfo: 'none',
+            hoverinfo: "none",
             showlegend: false,
-            name: 'connection_line'
+            name: "connection_line"
         };
 
         const tracesToRemove = [];
-        console.log(chart);
-        console.log(chart.data);
-
         chart.data.forEach((trace, index) => {
-            if (trace.name === 'connection_line') {
+            if (trace.name === "connection_line") {
                 tracesToRemove.push(index);
             }
         });
@@ -240,6 +256,7 @@ document.addEventListener("DOMContentLoaded", function () {
         for (const testName in testsByName) {
             const chartDiv = document.createElement("div");
             chartDiv.className = "chart-container";
+            chartDiv.dataset.testName = testName;
             chartsContainer.appendChild(chartDiv);
 
             const testData = testsByName[testName];
@@ -287,7 +304,7 @@ document.addEventListener("DOMContentLoaded", function () {
                             size: 22
                         },
                         x: 0.5,
-                        xanchor: 'center'
+                        xanchor: "center"
                     },
                     xaxis: {
                         ...kCommonXAxisConfig,
@@ -344,7 +361,7 @@ document.addEventListener("DOMContentLoaded", function () {
                             size: 22
                         },
                         x: 0.5,
-                        xanchor: 'center'
+                        xanchor: "center"
                     },
                     xaxis: {
                         ...kCommonXAxisConfig,
@@ -372,7 +389,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 Plotly.newPlot(fullscreenChartDiv, traces, fullscreenLayout, {responsive: true});
             });
 
-            chartDiv.on('plotly_click', function (eventData) {
+            chartDiv.on("plotly_click", function (eventData) {
                 onPointClick(chartDiv, eventData.points, selectedSchemeKey, scheme, testData);
             });
         }
@@ -382,19 +399,35 @@ document.addEventListener("DOMContentLoaded", function () {
         const excludeOutliers = outlierCheckbox.checked;
         const selectedSchemeKey = selector.value;
         const scheme = comparisonSchemes[selectedSchemeKey];
-        const filterText = searchInput.value.toLowerCase().trim();
+        const testFilterText = testFilterInput.value.toLowerCase().trim();
+        const dataFilterText = dataFilterInput.value.toLowerCase().trim();
 
         localStorage.setItem("xemuPerfChartMode", selectedSchemeKey);
         localStorage.setItem("xemuPerfExcludeOutlier", excludeOutliers);
 
         chartsContainer.innerHTML = "";
 
-        if (!allRawData || allRawData.length === 0) {
+        let filteredRawData = allRawData;
+        if (filteredRawData && dataFilterText) {
+            filteredRawData = allRawData.filter(d => {
+                const searchableString = [
+                    d.cpu_manufacturer,
+                    d.gpu_renderer,
+                    d.gpu_vendor,
+                    d.os_system,
+                    d.renderer,
+                    d.xemu_version,
+                    d.machine_info
+                ].join(" ").toLowerCase();
+                return searchableString.includes(dataFilterText);
+            });
+        }
+        if (!filteredRawData || filteredRawData.length === 0) {
             chartsContainer.innerHTML = "<p>No data available to display.</p>";
             return;
         }
 
-        const processedData = allRawData.map(d => {
+        const processedData = filteredRawData.map(d => {
             if (excludeOutliers && d.iterations > 1) {
                 const newAverage = (d.total_us - d.max_us) / (d.iterations - 1);
                 return {
@@ -409,15 +442,140 @@ document.addEventListener("DOMContentLoaded", function () {
             };
         });
 
-        if (!filterText) {
+        if (!testFilterText && !dataFilterText) {
             renderSummaryChart(scheme, processedData);
         }
-        renderTestResultCharts(selectedSchemeKey, scheme, processedData, filterText);
+        renderTestResultCharts(selectedSchemeKey, scheme, processedData, testFilterText);
     }
 
-    selector.addEventListener("change", renderAllCharts);
-    outlierCheckbox.addEventListener("change", renderAllCharts);
-    searchInput.addEventListener("input", renderAllCharts);
+    function highlightMatch(fullText, filterText) {
+        if (!filterText) {
+            return fullText;
+        }
+        const regex = new RegExp(filterText, "gi");
+
+        const result = [];
+        let lastIndex = 0;
+        let match;
+        while ((match = regex.exec(fullText)) !== null) {
+            if (match.index > lastIndex) {
+                result.push(`<span class="data-filter-suggestion-non-matching-text">${fullText.substring(lastIndex, match.index)}</span>`);
+            }
+            result.push(`<span class="data-filter-suggestion-matching-text"><u><b>${match[0]}</b></u></span>`);
+            lastIndex = regex.lastIndex;
+        }
+
+        if (lastIndex < fullText.length) {
+            result.push(`<span class="data-filter-suggestion-non-matching-text">${fullText.substring(lastIndex)}</span>`);
+        }
+
+        return result.join("");
+    }
+
+    function updateFilterSuggestions() {
+        const filterText = dataFilterInput.value.toLowerCase().trim();
+
+        if (!filterText) {
+            suggestionsOverlay.style.display = "none";
+            return;
+        }
+
+        const inputContainer = document.getElementById("data-filter-container");
+        if (inputContainer) {
+            const calculatedMaxWidth = window.innerWidth - kMatchingDataItemsPadding;
+            suggestionsOverlay.style.maxWidth = `${calculatedMaxWidth}px`;
+        }
+
+        const matchCounts = {};
+        let matchingMachines = new Set();
+        allRawData.forEach(d => {
+            for (const field of kSearchableDataFields) {
+                const value = d[field];
+                if (value && value.toLowerCase().includes(filterText)) {
+                    matchCounts[value] = (matchCounts[value] || new Set()).add(d.machine_id);
+                    matchingMachines.add(d.machine_id);
+                }
+            }
+        });
+
+        if (Object.keys(matchCounts).length === 0) {
+            suggestionsOverlay.style.display = "none";
+            return;
+        }
+
+        let html = `<ul>`;
+        const sortedMatches = Object.entries(matchCounts).sort();
+        for (const [match, matches] of sortedMatches) {
+            const highlightedMatch = highlightMatch(match, filterText);
+            html += `<li>${highlightedMatch} (${matches.size})</li>`;
+        }
+        html += "</ul>";
+
+        suggestionsOverlay.innerHTML = html;
+        suggestionsOverlay.style.display = "block";
+    }
+
+    function handleFilterChange() {
+        let anchorTestName = null;
+        let previousTopOffset = null;
+        const allCurrentCharts = Array.from(document.querySelectorAll(".chart-container"));
+        const orderedTestNames = allCurrentCharts.map(c => c.dataset.testName);
+
+        for (const chart of allCurrentCharts) {
+            const topPos = chart.getBoundingClientRect().top;
+            if (topPos >= 0) {
+                anchorTestName = chart.dataset.testName;
+                previousTopOffset = topPos;
+                break;
+            }
+        }
+        if (!anchorTestName && allCurrentCharts.length > 0) {
+            anchorTestName = allCurrentCharts[allCurrentCharts.length - 1].dataset.testName;
+        }
+
+        renderAllCharts();
+
+        requestAnimationFrame(() => {
+            let targetChart = document.querySelector(`[data-test-name="${anchorTestName}"]`);
+            if (!targetChart) {
+                const originalIndex = orderedTestNames.indexOf(anchorTestName);
+                for (let i = originalIndex - 1; i >= 0; i--) {
+                    const previousTestName = orderedTestNames[i];
+                    const previousChart = document.querySelector(`[data-test-name="${previousTestName}"]`);
+                    if (previousChart) {
+                        targetChart = previousChart;
+                        break;
+                    }
+                }
+            }
+
+            if (targetChart) {
+                const elementPosition = targetChart.getBoundingClientRect().top;
+                const targetPosition = elementPosition - previousTopOffset;
+
+                window.scrollTo({top: targetPosition});
+            }
+        });
+    }
+
+    function handleDebouncedChange() {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+            handleFilterChange();
+        }, kDebounceTimeoutMilliseconds);
+    }
+
+    selector.addEventListener("change", handleFilterChange);
+    outlierCheckbox.addEventListener("change", handleFilterChange);
+    testFilterInput.addEventListener("input", handleDebouncedChange);
+    dataFilterInput.addEventListener("input", () => {
+        updateFilterSuggestions();
+        handleDebouncedChange();
+    });
+    dataFilterInput.addEventListener("focus", updateFilterSuggestions);
+    dataFilterInput.addEventListener("blur", () => {
+        suggestionsOverlay.style.display = "none";
+    });
 
     renderAllCharts();
 });

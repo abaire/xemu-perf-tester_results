@@ -23,9 +23,23 @@
         </div>
         <div class="control-item">
             <div class="search-container">
-                <input type="search" id="search-box"
+                <label for="test-filter">Test filter</label>
+                <input type="search"
+                       id="test-filter"
                        placeholder="Filter by test name...">
-                </button>
+            </div>
+        </div>
+        <div class="control-item">
+            <div class="search-container">
+                <label for="data-filter">Data filter</label>
+
+                <div class="data-filter-wrapper">
+                    <input type="search"
+                           id="data-filter"
+                           autocomplete="off"
+                           placeholder="Filter by data (e.g., 'Intel')...">
+                    <div id="data-filter-suggestions"></div>
+                </div>
             </div>
         </div>
     </div>
