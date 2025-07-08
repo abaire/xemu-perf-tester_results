@@ -6,6 +6,16 @@ const kTooltipConfig = {
     }
 };
 
+const kCommonXAxisConfig = {
+    automargin: true,
+    tickangle: -25,
+    categoryorder: 'category ascending'
+};
+
+const kCommonMarkerConfig = {
+    size: 10
+};
+
 document.addEventListener("DOMContentLoaded", function () {
     const allRawData = {{ results_data | tojson | safe }};
 
@@ -98,7 +108,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         const layout = {
             title: {
-                text: "Overall duration (lower is better)",
+                text: "Overall average duration (lower is better)",
                 font: {
                     family: "Arial",
                     size: 22
@@ -107,15 +117,26 @@ document.addEventListener("DOMContentLoaded", function () {
                 xanchor: 'center'
             },
             xaxis: {
+                ...kCommonXAxisConfig,
                 title: scheme.title,
-                automargin: true,
-                tickangle: -25
             },
             yaxis: {title: "Sum of averages"},
             hoverlabel: kTooltipConfig
         };
 
         Plotly.newPlot(summaryChartDiv, [trace], layout, responsiveChartConfig);
+    }
+
+    function symbolForRendererBackend(renderer_backend) {
+        if (renderer_backend === "GL") {
+            return "circle";
+        }
+
+        if (renderer_backend === "VK") {
+            return "star-open-dot";
+        }
+
+        return "x";
     }
 
     function renderTestResultCharts(selectedSchemeKey, scheme, processedData) {
@@ -138,6 +159,10 @@ document.addEventListener("DOMContentLoaded", function () {
                 traces = [{
                     type: "scatter",
                     mode: "markers",
+                    marker: {
+                        ...kCommonMarkerConfig,
+                        symbol: testData.map(d => symbolForRendererBackend(d.renderer))
+                    },
                     x: testData.map(d => shortVersion(d[scheme.field])),
                     y: testData.map(d => d.average_ms),
                     transforms: [{
@@ -167,9 +192,8 @@ document.addEventListener("DOMContentLoaded", function () {
                         xanchor: 'center'
                     },
                     xaxis: {
+                        ...kCommonXAxisConfig,
                         title: scheme.title,
-                        automargin: true,
-                        tickangle: -25
                     },
                     yaxis: {title: "Avg duration (ms)", autorange: true},
                     showlegend: false,
@@ -189,6 +213,10 @@ document.addEventListener("DOMContentLoaded", function () {
                         type: "scatter",
                         mode: "markers",
                         name: shortVersion(version),
+                        marker: {
+                            ...kCommonMarkerConfig,
+                            symbol: testData.map(d => symbolForRendererBackend(d.renderer))
+                        },
                         x: versionData.map(d => d[scheme.field]),
                         y: versionData.map(d => d.average_ms),
                         customdata: versionData.map(d => [
@@ -215,9 +243,8 @@ document.addEventListener("DOMContentLoaded", function () {
                         xanchor: 'center'
                     },
                     xaxis: {
+                        ...kCommonXAxisConfig,
                         title: scheme.title,
-                        automargin: true,
-                        tickangle: -25
                     },
                     yaxis: {title: "Avg duration (ms)", autorange: true},
                     showlegend: true,
