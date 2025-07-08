@@ -186,14 +186,14 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         const clickedPoint = points[0];
-        const machineId = clickedPoint.customdata[5];
+        const machine_id_with_renderer = clickedPoint.customdata[6];
 
-        if (!machineId) {
+        if (!machine_id_with_renderer) {
             return;
         }
 
         const machineData = testData
-            .filter(d => d.machine_id === machineId)
+            .filter(d => d.machine_id_with_renderer === machine_id_with_renderer)
             .sort((a, b) => {
                 const valA = (selectedSchemeKey === 'by-version') ? shortVersion(a[scheme.field]) : a[scheme.field];
                 const valB = (selectedSchemeKey === 'by-version') ? shortVersion(b[scheme.field]) : b[scheme.field];
