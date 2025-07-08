@@ -1,0 +1,94 @@
+{
+  "iso": "xemu-perf-tests-v2025-07-08_16-37-11-883515123.iso",
+  "suite_allowlist": null,
+  "xemu_version": "xemu-0.8.54-master-0c2a6178192043db8b30c4d61a96129b442102f5",
+  "xemu_machine_info": "xemu_version: 0.8.54\nxemu_branch: master\nxemu_commit: 0c2a6178192043db8b30c4d61a96129b442102f5\nxemu_date: Fri Apr 18 19:02:11 UTC 2025\nxemu_settings_get_base_path: base path: C:\\Users\\abaire\\Desktop\\tmp\\xemu-perf-tester_results\\cache\\\nxemu_settings_get_path: config path: C:\\Users\\abaire\\Desktop\\tmp\\xemu-perf-tester_results\\cache\\xemu.toml\nCPU: Intel(R) Core(TM) i7-6700K CPU @ 4.00GHz\nOS_Version:  24H2\nGL_VENDOR: NVIDIA Corporation\nGL_RENDERER: NVIDIA GeForce GTX 1070/PCIe/SSE2\nGL_VERSION: 4.0.0 NVIDIA 560.94\nGL_SHADING_LANGUAGE_VERSION: 4.00 NVIDIA via Cg compilerWARNING: Image format was not specified for 'C:\\Users\\abaire\\Desktop\\tmp\\xemu-perf-tester_results\\cache\\hdd.img' and probing guessed raw.\n         Automatically detecting the format is dangerous for raw images, write operations on block 0 will be restricted.\n         Specify the 'raw' format explicitly to remove the restrictions.\nEnabled instance extensions:\n- VK_KHR_surface\n- VK_KHR_win32_surface\n- VK_KHR_get_physical_device_properties2\n- VK_KHR_external_semaphore_capabilities\n- VK_KHR_external_memory_capabilities\nAvailable physical devices:\n- NVIDIA GeForce GTX 1070\n- NVIDIA GeForce GTX 1070\nSelected physical device: NVIDIA GeForce GTX 1070\n- Vendor: 10de, Device: 1b81\n- Driver Version: 560.376.0\nEnabled device extensions:\n- VK_KHR_external_semaphore\n- VK_KHR_external_memory\n- VK_KHR_external_memory_win32\n- VK_KHR_external_semaphore_win32\n- VK_EXT_custom_border_color\n- VK_EXT_provoking_vertex\n- VK_EXT_memory_budget\n",
+  "machine_info": {
+    "cpu_manufacturer": "Intel(R) Core(TM) i7-6700K CPU @ 4.00GHz",
+    "cpu_vendor_id": "GenuineIntel",
+    "cpu_stepping": 3,
+    "cpu_model": 94,
+    "cpu_family": 6,
+    "cpu_cores": 4,
+    "hw_threads": 8,
+    "os_system": "Windows",
+    "os_release": "10",
+    "os_version": "10.0.26100",
+    "os_machine_type": "AMD64",
+    "cpu_freq_max": 4001.0,
+    "os_win_edition": "Professional",
+    "os_win_version": [
+      "10",
+      "10.0.26100",
+      "SP0",
+      "Multiprocessor Free"
+    ]
+  },
+  "renderer": "VK",
+  "results": [
+    {
+      "name": "High vertex count::HighVtxCount-arrays",
+      "iterations": 100,
+      "total_us": 5812,
+      "average_us": 58,
+      "min_us": 41,
+      "max_us": 1016
+    },
+    {
+      "name": "High vertex count::HighVtxCount-inlinearrays",
+      "iterations": 10,
+      "total_us": 609942,
+      "average_us": 60994,
+      "min_us": 57325,
+      "max_us": 68551
+    },
+    {
+      "name": "High vertex count::HighVtxCount-inlinebuffers",
+      "iterations": 5,
+      "total_us": 1716675,
+      "average_us": 343335,
+      "min_us": 340371,
+      "max_us": 345553
+    },
+    {
+      "name": "High vertex count::HighVtxCount-inlineelements",
+      "iterations": 50,
+      "total_us": 204189,
+      "average_us": 4083,
+      "min_us": 3395,
+      "max_us": 5065
+    },
+    {
+      "name": "Vertex buffer allocation::MixedVtxAlloc-arrays",
+      "iterations": 10,
+      "total_us": 1874631,
+      "average_us": 187463,
+      "min_us": 181907,
+      "max_us": 193243
+    },
+    {
+      "name": "Vertex buffer allocation::MixedVtxAlloc-inlinearrays",
+      "iterations": 10,
+      "total_us": 1311041,
+      "average_us": 131104,
+      "min_us": 128294,
+      "max_us": 134444
+    },
+    {
+      "name": "Vertex buffer allocation::MixedVtxAlloc-inlinebuffers",
+      "iterations": 10,
+      "total_us": 8615744,
+      "average_us": 861574,
+      "min_us": 805582,
+      "max_us": 1092172
+    },
+    {
+      "name": "Vertex buffer allocation::MixedVtxAlloc-inlineelements",
+      "iterations": 10,
+      "total_us": 377015,
+      "average_us": 37701,
+      "min_us": 35201,
+      "max_us": 41364
+    }
+  ]
+}
