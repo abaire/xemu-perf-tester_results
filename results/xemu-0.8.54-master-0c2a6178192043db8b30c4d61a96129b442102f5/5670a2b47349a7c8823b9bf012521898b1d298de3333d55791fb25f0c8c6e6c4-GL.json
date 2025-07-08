@@ -1,0 +1,94 @@
+{
+  "iso": "xemu-perf-tests-v2025-07-08_16-37-11-883515123.iso",
+  "suite_allowlist": null,
+  "xemu_version": "xemu-0.8.54-master-0c2a6178192043db8b30c4d61a96129b442102f5",
+  "xemu_machine_info": "xemu_version: 0.8.54\nxemu_branch: master\nxemu_commit: 0c2a6178192043db8b30c4d61a96129b442102f5\nxemu_date: Fri Apr 18 19:02:11 UTC 2025\nCPU: AMD Ryzen 7 7730U with Radeon Graphics         \nOS_Version:  24H2\nGL_VENDOR: ATI Technologies Inc.\nGL_RENDERER: AMD Radeon (TM) Graphics\nGL_VERSION: 4.0.0 Core Profile Context 22.20.46.27.240111\nGL_SHADING_LANGUAGE_VERSION: 4.60\n       Specify the 'raw' format explicitly to remove the restrictions.\n",
+  "machine_info": {
+    "cpu_manufacturer": "AMD Ryzen 7 7730U with Radeon Graphics",
+    "cpu_vendor_id": "AuthenticAMD",
+    "cpu_stepping": "N/A",
+    "cpu_model": 80,
+    "cpu_family": 25,
+    "cpu_cores": 8,
+    "hw_threads": 16,
+    "os_system": "Windows",
+    "os_release": "10",
+    "os_version": "10.0.26100",
+    "os_machine_type": "AMD64",
+    "cpu_freq_max": 2000.0,
+    "os_win_edition": "Core",
+    "os_win_version": [
+      "10",
+      "10.0.26100",
+      "SP0",
+      "Multiprocessor Free"
+    ]
+  },
+  "renderer": "GL",
+  "results": [
+    {
+      "name": "High vertex count::HighVtxCount-arrays",
+      "iterations": 100,
+      "total_us": 5541,
+      "average_us": 55,
+      "min_us": 39,
+      "max_us": 848
+    },
+    {
+      "name": "High vertex count::HighVtxCount-inlinearrays",
+      "iterations": 10,
+      "total_us": 457487,
+      "average_us": 45748,
+      "min_us": 43842,
+      "max_us": 50797
+    },
+    {
+      "name": "High vertex count::HighVtxCount-inlinebuffers",
+      "iterations": 5,
+      "total_us": 1286017,
+      "average_us": 257203,
+      "min_us": 255472,
+      "max_us": 260156
+    },
+    {
+      "name": "High vertex count::HighVtxCount-inlineelements",
+      "iterations": 50,
+      "total_us": 146609,
+      "average_us": 2932,
+      "min_us": 2357,
+      "max_us": 7148
+    },
+    {
+      "name": "Vertex buffer allocation::MixedVtxAlloc-arrays",
+      "iterations": 10,
+      "total_us": 1401344,
+      "average_us": 140134,
+      "min_us": 137397,
+      "max_us": 143666
+    },
+    {
+      "name": "Vertex buffer allocation::MixedVtxAlloc-inlinearrays",
+      "iterations": 10,
+      "total_us": 1094818,
+      "average_us": 109481,
+      "min_us": 103125,
+      "max_us": 114280
+    },
+    {
+      "name": "Vertex buffer allocation::MixedVtxAlloc-inlinebuffers",
+      "iterations": 10,
+      "total_us": 5994159,
+      "average_us": 599415,
+      "min_us": 587967,
+      "max_us": 625576
+    },
+    {
+      "name": "Vertex buffer allocation::MixedVtxAlloc-inlineelements",
+      "iterations": 10,
+      "total_us": 308155,
+      "average_us": 30815,
+      "min_us": 29184,
+      "max_us": 34047
+    }
+  ]
+}
