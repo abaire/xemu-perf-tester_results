@@ -19,6 +19,19 @@ const kCommonMarkerConfig = {
 document.addEventListener("DOMContentLoaded", function () {
     const allRawData = {{ results_data | tojson | safe }};
 
+    const chartsContainer = document.getElementById("charts-container");
+    const selector = document.getElementById("slice-selector");
+    const outlierCheckbox = document.getElementById("outlier-checkbox");
+
+    const fullscreenOverlay = document.getElementById("fullscreen-overlay");
+    const fullscreenChartDiv = document.getElementById("fullscreen-chart");
+    const closeFullscreenBtn = document.getElementById("close-fullscreen");
+
+    closeFullscreenBtn.addEventListener("click", () => {
+        fullscreenOverlay.style.display = "none";
+        Plotly.purge(fullscreenChartDiv); // Important: clean up the chart to prevent memory leaks
+    });
+
     const comparisonSchemes = {
         "by-cpu": {field: "cpu_manufacturer", title: "CPU"},
         "by-gpu": {field: "gpu_renderer", title: "GPU"},
@@ -27,10 +40,6 @@ document.addEventListener("DOMContentLoaded", function () {
         "by-renderer": {field: "renderer", title: "Renderer Backend"},
         "by-version": {field: "xemu_version", title: "xemu Version"},
     };
-
-    const chartsContainer = document.getElementById("charts-container");
-    const selector = document.getElementById("slice-selector");
-    const outlierCheckbox = document.getElementById("outlier-checkbox");
 
     for (const key in comparisonSchemes) {
         const option = document.createElement("option");
@@ -123,8 +132,19 @@ document.addEventListener("DOMContentLoaded", function () {
             yaxis: {title: "Sum of averages"},
             hoverlabel: kTooltipConfig
         };
-
         Plotly.newPlot(summaryChartDiv, [trace], layout, responsiveChartConfig);
+
+        const expandButton = document.createElement("button");
+        expandButton.textContent = "Expand";
+        expandButton.className = "expand-button";
+        summaryChartDiv.appendChild(expandButton);
+
+        expandButton.addEventListener("click", () => {
+            const fullscreenLayout = JSON.parse(JSON.stringify(layout));
+            fullscreenLayout.title.font = {size: 24};
+            fullscreenOverlay.style.display = "block";
+            Plotly.newPlot(fullscreenChartDiv, [trace], fullscreenLayout, {responsive: true});
+        });
     }
 
     function symbolForRendererBackend(renderer_backend) {
@@ -252,8 +272,21 @@ document.addEventListener("DOMContentLoaded", function () {
                     margin: {t: 50}
                 };
             }
-
             Plotly.newPlot(chartDiv, traces, layout, responsiveChartConfig);
+
+            const expandButton = document.createElement("button");
+            expandButton.textContent = "Expand";
+            expandButton.className = "expand-button";
+            chartDiv.appendChild(expandButton);
+
+            expandButton.addEventListener("click", () => {
+                const fullscreenLayout = JSON.parse(JSON.stringify(layout));
+                if (fullscreenLayout.title) {
+                    fullscreenLayout.title.font = {size: 24};
+                }
+                fullscreenOverlay.style.display = "block";
+                Plotly.newPlot(fullscreenChartDiv, traces, fullscreenLayout, {responsive: true});
+            });
         }
     }
 
