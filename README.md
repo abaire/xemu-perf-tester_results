@@ -12,7 +12,7 @@ Archived performance tester results for [xemu](https://xemu.app)
 Note: In the examples below, things surrounded by angle brackets (e.g.,
 `<someplace>`) will need to be replaced before running.
 
-### Prepare to submit a PR
+### One time setup
 
 1. Install `git` if needed (E.g., from https://git-scm.com/downloads)
 1. Fork this repository using the "Fork" button near the top of this GitHub
@@ -25,7 +25,7 @@ Note: In the examples below, things surrounded by angle brackets (e.g.,
    git clone git@github.com:<your_github_username>/xemu-perf-tester_results.git --depth 1
     ```
 
-### Set up your local environment
+#### Set up your local environment
 
 Read the README.md in the `inputs` directory or use the `run.sh`/`run.bat`
 script with `--import-install` to copy files from your working xemu
@@ -41,9 +41,9 @@ run.bat --import-install <path_to_xemu_toml_file>
 run.sh --import-install <path_to_xemu_toml_file>
 ```
 
-### Install Python (if needed)
+#### Install Python (if needed)
 
-#### Windows
+##### Windows
 
 At the moment only Python 3.10 is supported without a full development
 environment.
@@ -69,6 +69,21 @@ If you do not use Visual Studio:
    python.exe -m venv venv
    "venv\Scripts\pip.exe" install -r requirements.txt
    ````
+
+### Maintenance setup
+
+The tools in this repository may be updated from time to time, so it is a good idea to 
+[sync your fork](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/syncing-a-fork)
+regularly.
+
+After syncing, you will need to pull the latest changes to your local machine:
+
+```shell
+cd <someplace>/xemu-perf-tester_results
+
+git checkout main
+git pull
+```
 
 ## Run the tests
 
