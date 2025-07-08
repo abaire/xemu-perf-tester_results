@@ -29,8 +29,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
     closeFullscreenBtn.addEventListener("click", () => {
         fullscreenOverlay.style.display = "none";
-        Plotly.purge(fullscreenChartDiv); // Important: clean up the chart to prevent memory leaks
+        Plotly.purge(fullscreenChartDiv);
     });
+
+    const searchInput = document.getElementById("search-box");
 
     const comparisonSchemes = {
         "by-cpu": {field: "cpu_manufacturer", title: "CPU"},
@@ -159,11 +161,27 @@ document.addEventListener("DOMContentLoaded", function () {
         return "x";
     }
 
-    function renderTestResultCharts(selectedSchemeKey, scheme, processedData) {
-        const testsByName = processedData.reduce((acc, d) => {
+    function filteredTestsByName(processedData, filterText) {
+        let testsByName = processedData.reduce((acc, d) => {
             (acc[d.test_name] = acc[d.test_name] || []).push(d);
             return acc;
         }, {});
+
+        if (!filterText) {
+            return testsByName;
+        }
+
+        const filteredTests = {};
+        for (const testName in testsByName) {
+            if (testName.toLowerCase().includes(filterText)) {
+                filteredTests[testName] = testsByName[testName];
+            }
+        }
+        return filteredTests;
+    }
+
+    function renderTestResultCharts(selectedSchemeKey, scheme, processedData, filterText) {
+        const testsByName = filteredTestsByName(processedData, filterText)
 
         for (const testName in testsByName) {
             const chartDiv = document.createElement("div");
@@ -294,10 +312,12 @@ document.addEventListener("DOMContentLoaded", function () {
         const excludeOutliers = outlierCheckbox.checked;
         const selectedSchemeKey = selector.value;
         const scheme = comparisonSchemes[selectedSchemeKey];
-        chartsContainer.innerHTML = "";
+        const filterText = searchInput.value.toLowerCase().trim();
 
         localStorage.setItem("xemuPerfChartMode", selectedSchemeKey);
         localStorage.setItem("xemuPerfExcludeOutlier", excludeOutliers);
+
+        chartsContainer.innerHTML = "";
 
         if (!allRawData || allRawData.length === 0) {
             chartsContainer.innerHTML = "<p>No data available to display.</p>";
@@ -319,11 +339,15 @@ document.addEventListener("DOMContentLoaded", function () {
             };
         });
 
-        renderSummaryChart(scheme, processedData);
-        renderTestResultCharts(selectedSchemeKey, scheme, processedData);
+        if (!filterText) {
+            renderSummaryChart(scheme, processedData);
+        }
+        renderTestResultCharts(selectedSchemeKey, scheme, processedData, filterText);
     }
 
     selector.addEventListener("change", renderAllCharts);
     outlierCheckbox.addEventListener("change", renderAllCharts);
+    searchInput.addEventListener("input", renderAllCharts);
+
     renderAllCharts();
 });
