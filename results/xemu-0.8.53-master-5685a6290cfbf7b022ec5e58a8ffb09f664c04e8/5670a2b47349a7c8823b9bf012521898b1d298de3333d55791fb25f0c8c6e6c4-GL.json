@@ -1,0 +1,62 @@
+{
+  "iso": "xemu-perf-tests-v2025-07-08_16-37-11-883515123.iso",
+  "suite_allowlist": null,
+  "xemu_version": "xemu-0.8.53-master-5685a6290cfbf7b022ec5e58a8ffb09f664c04e8",
+  "xemu_machine_info": "xemu_version: 0.8.53\nxemu_branch: master\nxemu_commit: 5685a6290cfbf7b022ec5e58a8ffb09f664c04e8\nxemu_date: Thu Apr 17 03:29:58 UTC 2025\nxemu_settings_get_base_path: base path: C:\\Users\\\\\Documents\\GitHub\\xemu-perf-tester_results\\cache\\\nxemu_settings_get_path: config path: C:\\Users\\\\\Documents\\GitHub\\xemu-perf-tester_results\\cache\\xemu.toml\nCPU: AMD Ryzen 7 7730U with Radeon Graphics         \nOS_Version:  24H2\nGL_VENDOR: ATI Technologies Inc.\nGL_RENDERER: AMD Radeon (TM) Graphics\nGL_VERSION: 4.0.0 Core Profile Context 22.20.46.27.240111\nGL_SHADING_LANGUAGE_VERSION: 4.60WARNING: Image format was not specified for 'C:\\Users\\\\\Documents\\GitHub\\xemu-perf-tester_results\\cache\\hdd.img' and probing guessed raw.\n         Automatically detecting the format is dangerous for raw images, write operations on block 0 will be restricted.\n         Specify the 'raw' format explicitly to remove the restrictions.\n",
+  "machine_info": {
+    "cpu_manufacturer": "AMD Ryzen 7 7730U with Radeon Graphics",
+    "cpu_vendor_id": "AuthenticAMD",
+    "cpu_stepping": "N/A",
+    "cpu_model": 80,
+    "cpu_family": 25,
+    "cpu_cores": 8,
+    "hw_threads": 16,
+    "os_system": "Windows",
+    "os_release": "10",
+    "os_version": "10.0.26100",
+    "os_machine_type": "AMD64",
+    "cpu_freq_max": 2000.0,
+    "os_win_edition": "Core",
+    "os_win_version": [
+      "10",
+      "10.0.26100",
+      "SP0",
+      "Multiprocessor Free"
+    ]
+  },
+  "renderer": "GL",
+  "results": [
+    {
+      "name": "Vertex buffer allocation::MixedVtxAlloc-arrays",
+      "iterations": 10,
+      "total_us": 1414671,
+      "average_us": 141467,
+      "min_us": 139756,
+      "max_us": 142350
+    },
+    {
+      "name": "Vertex buffer allocation::MixedVtxAlloc-inlinearrays",
+      "iterations": 10,
+      "total_us": 1828458,
+      "average_us": 182845,
+      "min_us": 167215,
+      "max_us": 287901
+    },
+    {
+      "name": "Vertex buffer allocation::MixedVtxAlloc-inlinebuffers",
+      "iterations": 10,
+      "total_us": 6661656,
+      "average_us": 666165,
+      "min_us": 659383,
+      "max_us": 680249
+    },
+    {
+      "name": "Vertex buffer allocation::MixedVtxAlloc-inlineelements",
+      "iterations": 10,
+      "total_us": 1355898,
+      "average_us": 135589,
+      "min_us": 125150,
+      "max_us": 143417
+    }
+  ]
+}
