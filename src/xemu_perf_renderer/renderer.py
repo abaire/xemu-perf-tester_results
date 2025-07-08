@@ -43,6 +43,8 @@ class FlatResults:
                         "cpu_manufacturer": machine_info["cpu_manufacturer"],
                         "gpu_vendor": result["gpu_vendor"],
                         "gpu_renderer": result["gpu_renderer"],
+                        "machine_id": result["machine_id"],
+                        "machine_id_with_renderer": result["machine_id_with_renderer"]
                     }
                 )
 
@@ -112,6 +114,10 @@ def load_results(results_dir: str) -> list[dict[str, Any]]:
         with open(os.path.join(results_dir, result_file), "rb") as infile:
             result = json.load(infile)
             _expand_gpu_info(result)
+            # The stable machine ID + renderer backend is the json file without the ".json"
+            result["machine_id_with_renderer"] = os.path.basename(result_file)[:-5]
+            # The renderer backend is one of "-GL" or "-VK"
+            result["machine_id"] = os.path.basename(result_file)[:-8]
             results.append(result)
 
     return results

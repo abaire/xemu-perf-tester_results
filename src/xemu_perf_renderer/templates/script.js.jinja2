@@ -180,6 +180,60 @@ document.addEventListener("DOMContentLoaded", function () {
         return filteredTests;
     }
 
+    function onPointClick(chart, points, selectedSchemeKey, scheme, testData) {
+        if (!points.length) {
+            return;
+        }
+
+        const clickedPoint = points[0];
+        const machineId = clickedPoint.customdata[5];
+
+        if (!machineId) {
+            return;
+        }
+
+        const machineData = testData
+            .filter(d => d.machine_id === machineId)
+            .sort((a, b) => {
+                const valA = (selectedSchemeKey === 'by-version') ? shortVersion(a[scheme.field]) : a[scheme.field];
+                const valB = (selectedSchemeKey === 'by-version') ? shortVersion(b[scheme.field]) : b[scheme.field];
+                if (typeof valA === 'string') {
+                    return valA.localeCompare(valB);
+                }
+                return valA - valB;
+            });
+
+        const lineTrace = {
+            type: 'scatter',
+            mode: 'lines',
+            x: machineData.map(d => (selectedSchemeKey === 'by-version') ? shortVersion(d[scheme.field]) : d[scheme.field]),
+            y: machineData.map(d => d.average_ms),
+            line: {
+                color: 'rgba(60, 20, 60, 0.7)',
+                width: 2
+            },
+            hoverinfo: 'none',
+            showlegend: false,
+            name: 'connection_line'
+        };
+
+        const tracesToRemove = [];
+        console.log(chart);
+        console.log(chart.data);
+
+        chart.data.forEach((trace, index) => {
+            if (trace.name === 'connection_line') {
+                tracesToRemove.push(index);
+            }
+        });
+
+        if (tracesToRemove.length > 0) {
+            Plotly.deleteTraces(chart, tracesToRemove);
+        }
+
+        Plotly.addTraces(chart, lineTrace);
+    }
+
     function renderTestResultCharts(selectedSchemeKey, scheme, processedData, filterText) {
         const testsByName = filteredTestsByName(processedData, filterText)
 
@@ -208,7 +262,13 @@ document.addEventListener("DOMContentLoaded", function () {
                         groups: testData.map(d => d[scheme.field])
                     }],
                     customdata: testData.map(d => [
-                        d.xemu_version, d.os_system, d.cpu_manufacturer, d.gpu_renderer, d.renderer
+                        d.xemu_version,
+                        d.os_system,
+                        d.cpu_manufacturer,
+                        d.gpu_renderer,
+                        d.renderer,
+                        d.machine_id,
+                        d.machine_id_with_renderer
                     ]),
                     hovertemplate: "<b>%{y:.2f} ms</b><br>" +
                         "Xemu    %{customdata[0]}<br>" +
@@ -258,7 +318,13 @@ document.addEventListener("DOMContentLoaded", function () {
                         x: versionData.map(d => d[scheme.field]),
                         y: versionData.map(d => d.average_ms),
                         customdata: versionData.map(d => [
-                            d.xemu_version, d.os_system, d.cpu_manufacturer, d.gpu_renderer, d.renderer
+                            d.xemu_version,
+                            d.os_system,
+                            d.cpu_manufacturer,
+                            d.gpu_renderer,
+                            d.renderer,
+                            d.machine_id,
+                            d.machine_id_with_renderer
                         ]),
                         hovertemplate: "<b>%{y:.2f} ms</b><br>" +
                             "Xemu    %{customdata[0]}<br>" +
@@ -304,6 +370,10 @@ document.addEventListener("DOMContentLoaded", function () {
                 }
                 fullscreenOverlay.style.display = "block";
                 Plotly.newPlot(fullscreenChartDiv, traces, fullscreenLayout, {responsive: true});
+            });
+
+            chartDiv.on('plotly_click', function (eventData) {
+                onPointClick(chartDiv, eventData.points, selectedSchemeKey, scheme, testData);
             });
         }
     }
