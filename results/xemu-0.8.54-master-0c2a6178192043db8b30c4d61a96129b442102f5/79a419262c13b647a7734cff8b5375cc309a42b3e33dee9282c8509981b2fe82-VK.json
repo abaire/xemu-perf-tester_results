@@ -1,0 +1,90 @@
+{
+  "iso": "xemu-perf-tests-v2025-07-08_16-37-11-883515123.iso",
+  "suite_allowlist": null,
+  "xemu_version": "xemu-0.8.54-master-0c2a6178192043db8b30c4d61a96129b442102f5",
+  "xemu_machine_info": "xemu_version: 0.8.54\nxemu_branch: master\nxemu_commit: 0c2a6178192043db8b30c4d61a96129b442102f5\nxemu_date: Fri Apr 18 19:01:16 UTC 2025\nxemu_settings_get_base_path: base path: /mnt/linux_data/development/xbox/xemu-perf-tester_results/cache/xemu-v0.8.54-x86_64.AppImage.home/.local/share/xemu/xemu/\nxemu_settings_get_path: config path: /mnt/linux_data/development/xbox/xemu-perf-tester_results/cache/xemu-v0.8.54-x86_64.AppImage.home/.local/share/xemu/xemu/xemu.toml\nCPU: Intel(R) Core(TM) i7-6700K CPU @ 4.00GHz\nOS_Version: Ubuntu 24.04.2 LTS\nGL_VENDOR: NVIDIA Corporation\nGL_RENDERER: NVIDIA GeForce GTX 1070/PCIe/SSE2\nGL_VERSION: 4.0.0 NVIDIA 570.158.01\nGL_SHADING_LANGUAGE_VERSION: 4.00 NVIDIA via Cg compilerWARNING: Image format was not specified for '/mnt/linux_data/development/xbox/xemu-perf-tester_results/cache/hdd.img' and probing guessed raw.\n         Automatically detecting the format is dangerous for raw images, write operations on block 0 will be restricted.\n         Specify the 'raw' format explicitly to remove the restrictions.\nEnabled instance extensions:\n- VK_KHR_surface\n- VK_KHR_xlib_surface\n- VK_KHR_get_physical_device_properties2\n- VK_KHR_external_semaphore_capabilities\n- VK_KHR_external_memory_capabilities\nAvailable physical devices:\n- NVIDIA GeForce GTX 1070\n- NVIDIA GeForce GTX 1070\n- llvmpipe (LLVM 19.1.1, 256 bits)\nSelected physical device: NVIDIA GeForce GTX 1070\n- Vendor: 10de, Device: 1b81\n- Driver Version: 570.632.64\nEnabled device extensions:\n- VK_KHR_external_semaphore\n- VK_KHR_external_memory\n- VK_KHR_external_memory_fd\n- VK_KHR_external_semaphore_fd\n- VK_EXT_custom_border_color\n- VK_EXT_provoking_vertex\n- VK_EXT_memory_budget\n",
+  "machine_info": {
+    "cpu_manufacturer": "Intel(R) Core(TM) i7-6700K CPU @ 4.00GHz",
+    "cpu_vendor_id": "GenuineIntel",
+    "cpu_stepping": 3,
+    "cpu_model": 94,
+    "cpu_family": 6,
+    "cpu_cores": 4,
+    "hw_threads": 8,
+    "os_system": "Linux",
+    "os_release": "6.8.0-62-generic",
+    "os_version": "#65-Ubuntu SMP PREEMPT_DYNAMIC Mon May 19 17:15:03 UTC 2025",
+    "os_machine_type": "x86_64",
+    "cpu_freq_max": 4200.0,
+    "os_linux_distro": "Ubuntu 24.04.2 LTS",
+    "os_linux_distro_id": "ubuntu",
+    "os_linux_version": "24.04.2"
+  },
+  "renderer": "VK",
+  "results": [
+    {
+      "name": "High vertex count::HighVtxCount-arrays",
+      "iterations": 100,
+      "total_us": 10522,
+      "average_us": 105,
+      "min_us": 41,
+      "max_us": 1445
+    },
+    {
+      "name": "High vertex count::HighVtxCount-inlinearrays",
+      "iterations": 10,
+      "total_us": 984067,
+      "average_us": 98406,
+      "min_us": 77161,
+      "max_us": 116871
+    },
+    {
+      "name": "High vertex count::HighVtxCount-inlinebuffers",
+      "iterations": 5,
+      "total_us": 3839897,
+      "average_us": 767979,
+      "min_us": 701319,
+      "max_us": 831818
+    },
+    {
+      "name": "High vertex count::HighVtxCount-inlineelements",
+      "iterations": 50,
+      "total_us": 316001,
+      "average_us": 6320,
+      "min_us": 3635,
+      "max_us": 7232
+    },
+    {
+      "name": "Vertex buffer allocation::MixedVtxAlloc-arrays",
+      "iterations": 10,
+      "total_us": 3540201,
+      "average_us": 354020,
+      "min_us": 338784,
+      "max_us": 373920
+    },
+    {
+      "name": "Vertex buffer allocation::MixedVtxAlloc-inlinearrays",
+      "iterations": 10,
+      "total_us": 2073853,
+      "average_us": 207385,
+      "min_us": 175421,
+      "max_us": 231888
+    },
+    {
+      "name": "Vertex buffer allocation::MixedVtxAlloc-inlinebuffers",
+      "iterations": 10,
+      "total_us": 17581342,
+      "average_us": 1758134,
+      "min_us": 1196457,
+      "max_us": 1957453
+    },
+    {
+      "name": "Vertex buffer allocation::MixedVtxAlloc-inlineelements",
+      "iterations": 10,
+      "total_us": 440710,
+      "average_us": 44071,
+      "min_us": 34800,
+      "max_us": 77789
+    }
+  ]
+}
