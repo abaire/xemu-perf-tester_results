@@ -30,6 +30,13 @@ const kDebounceTimeoutMilliseconds = 100;
 
 const kMatchingDataItemsPadding = 20;
 
+const kMaxJitter = 0.4;
+
+const kMachineContinuityLineStyle = {
+    color: "rgba(60, 20, 60, 0.7)",
+    width: 2
+};
+
 document.addEventListener("DOMContentLoaded", function () {
     let debounceTimer;
     const allRawData = {{ results_data | tojson | safe }};
@@ -199,7 +206,7 @@ document.addEventListener("DOMContentLoaded", function () {
         return filteredTests;
     }
 
-    function onPointClick(chart, points, selectedSchemeKey, scheme, testData) {
+    function onPointClick(chart, points, selectedSchemeKey, scheme, testData, categoryMap) {
         if (!points.length) {
             return;
         }
@@ -225,12 +232,9 @@ document.addEventListener("DOMContentLoaded", function () {
         const lineTrace = {
             type: "scatter",
             mode: "lines",
-            x: machineData.map(d => (selectedSchemeKey === "by-version") ? shortVersion(d[scheme.field]) : d[scheme.field]),
+            x: machineData.map(d => d.jitteredX),
             y: machineData.map(d => d.average_ms),
-            line: {
-                color: "rgba(60, 20, 60, 0.7)",
-                width: 2
-            },
+            line: kMachineContinuityLineStyle,
             hoverinfo: "none",
             showlegend: false,
             name: "connection_line"
@@ -260,6 +264,31 @@ document.addEventListener("DOMContentLoaded", function () {
             chartsContainer.appendChild(chartDiv);
 
             const testData = testsByName[testName];
+            const xCategories = [...new Set(testData.map(d => d[scheme.field]))].sort((a, b) => a.localeCompare(b));
+            const categoryMap = new Map(xCategories.map((cat, i) => [cat, i]));
+
+            const pointsPerCategory = {};
+            testData.forEach(d => {
+                const category = d[scheme.field];
+                pointsPerCategory[category] = (pointsPerCategory[category] || 0) + 1;
+            });
+
+            const categoryIndexCounter = {};
+            testData.forEach(d => {
+                const category = d[scheme.field];
+                const numPoints = pointsPerCategory[category];
+                const currentIndex = categoryIndexCounter[category] || 0;
+
+                const basePosition = categoryMap.get(category);
+                let offset = 0;
+                if (numPoints > 1) {
+                    offset = (currentIndex / (numPoints - 1)) - 0.5;
+                }
+
+                d.jitteredX = basePosition + offset * kMaxJitter;
+
+                categoryIndexCounter[category] = currentIndex + 1;
+            });
 
             let traces;
             let layout;
@@ -281,7 +310,7 @@ document.addEventListener("DOMContentLoaded", function () {
                             ...kCommonMarkerConfig,
                             symbol: machineData.map(d => symbolForRendererBackend(d.renderer))
                         },
-                        x: machineData.map(d => shortVersion(d.xemu_version)),
+                        x: machineData.map(d => d.jitteredX),
                         y: machineData.map(d => d.average_ms),
                         customdata: machineData.map(d => [
                             d.xemu_version,
@@ -303,26 +332,6 @@ document.addEventListener("DOMContentLoaded", function () {
                             "<extra></extra>"
                     });
                 }
-
-                layout = {
-                    title: {
-                        text: `${testName} by ${scheme.title}`,
-                        font: {
-                            family: "Arial",
-                            size: 22
-                        },
-                        x: 0.5,
-                        xanchor: "center"
-                    },
-                    xaxis: {
-                        ...kCommonXAxisConfig,
-                        title: scheme.title,
-                    },
-                    yaxis: {title: "Avg duration (ms)", autorange: true},
-                    showlegend: false,
-                    hoverlabel: kTooltipConfig
-                };
-
             } else {
                 traces = [];
                 const versions = testData.reduce((acc, d) => {
@@ -340,7 +349,7 @@ document.addEventListener("DOMContentLoaded", function () {
                             ...kCommonMarkerConfig,
                             symbol: versionData.map(d => symbolForRendererBackend(d.renderer))
                         },
-                        x: versionData.map(d => d[scheme.field]),
+                        x: machineData.map(d => d.jitteredX),
                         y: versionData.map(d => d.average_ms),
                         customdata: versionData.map(d => [
                             d.xemu_version,
@@ -363,27 +372,29 @@ document.addEventListener("DOMContentLoaded", function () {
                             "<extra></extra>"
                     });
                 }
-
-                layout = {
-                    title: {
-                        text: `${testName} by ${scheme.title}`,
-                        font: {
-                            family: "Arial",
-                            size: 22
-                        },
-                        x: 0.5,
-                        xanchor: "center"
-                    },
-                    xaxis: {
-                        ...kCommonXAxisConfig,
-                        title: scheme.title
-                    },
-                    yaxis: {title: "Avg duration (ms)", autorange: true},
-                    showlegend: true,
-                    hoverlabel: kTooltipConfig,
-                    margin: {t: 50}
-                };
             }
+
+            layout = {
+                title: {
+                    text: `${testName} by ${scheme.title}`,
+                    font: {
+                        family: "Arial",
+                        size: 22
+                    },
+                    x: 0.5,
+                    xanchor: "center"
+                },
+                xaxis: {
+                    ...kCommonXAxisConfig,
+                    title: scheme.title,
+                    tickvals: Array.from(categoryMap.values()),
+                    ticktext: Array.from(categoryMap.keys()).map(cat => (selectedSchemeKey === "by-version" ? shortVersion(cat) : cat))
+                },
+                yaxis: {title: "Avg duration (ms)", autorange: true},
+                showlegend: selectedSchemeKey !== "by-version",
+                hoverlabel: kTooltipConfig
+            };
+
             Plotly.newPlot(chartDiv, traces, layout, responsiveChartConfig);
 
             const expandButton = document.createElement("button");
