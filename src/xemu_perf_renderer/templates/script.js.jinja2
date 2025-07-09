@@ -265,37 +265,43 @@ document.addEventListener("DOMContentLoaded", function () {
             let layout;
 
             if (selectedSchemeKey === "by-version") {
-                traces = [{
-                    type: "scatter",
-                    mode: "markers",
-                    marker: {
-                        ...kCommonMarkerConfig,
-                        symbol: testData.map(d => symbolForRendererBackend(d.renderer))
-                    },
-                    x: testData.map(d => shortVersion(d[scheme.field])),
-                    y: testData.map(d => d.average_ms),
-                    transforms: [{
-                        type: "groupby",
-                        groups: testData.map(d => d[scheme.field])
-                    }],
-                    customdata: testData.map(d => [
-                        d.xemu_version,
-                        d.os_system,
-                        d.cpu_manufacturer,
-                        d.gpu_renderer,
-                        d.renderer,
-                        d.machine_id,
-                        d.machine_id_with_renderer
-                    ]),
-                    hovertemplate: "<b>%{y:.2f} ms</b><br>" +
-                        "Xemu    %{customdata[0]}<br>" +
-                        "OS      %{customdata[1]}<br>" +
-                        "CPU     %{customdata[2]}<br>" +
-                        "GPU     %{customdata[3]}<br>" +
-                        "Backend %{customdata[4]}<br>" +
-                        "<extra></extra>"
-                }];
+                traces = []
+                const machines = testData.reduce((acc, d) => {
+                    (acc[d.machine_id] = acc[d.machine_id] || []).push(d);
+                    return acc;
+                }, {});
 
+                for (const machineId in machines) {
+                    const machineData = machines[machineId];
+                    traces.push({
+                        type: "scatter",
+                        mode: "markers",
+                        name: machineId,
+                        marker: {
+                            ...kCommonMarkerConfig,
+                            symbol: machineData.map(d => symbolForRendererBackend(d.renderer))
+                        },
+                        x: machineData.map(d => shortVersion(d.xemu_version)),
+                        y: machineData.map(d => d.average_ms),
+                        customdata: machineData.map(d => [
+                            d.xemu_version,
+                            d.os_system,
+                            d.cpu_manufacturer,
+                            d.gpu_renderer,
+                            d.renderer,
+                            d.machine_id,
+                            d.machine_id_with_renderer
+                        ]),
+                        hovertemplate: "<b>%{y:.2f} ms</b><br>" +
+                            "Xemu    %{customdata[0]}<br>" +
+                            "OS      %{customdata[1]}<br>" +
+                            "CPU     %{customdata[2]}<br>" +
+                            "GPU     %{customdata[3]}<br>" +
+                            "Backend %{customdata[4]}<br>" +
+                            "<extra></extra>"
+                    });
+                }
+                 
                 layout = {
                     title: {
                         text: `${testName} by ${scheme.title}`,
@@ -365,7 +371,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     },
                     xaxis: {
                         ...kCommonXAxisConfig,
-                        title: scheme.title,
+                        title: scheme.title
                     },
                     yaxis: {title: "Avg duration (ms)", autorange: true},
                     showlegend: true,
