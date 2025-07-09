@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 # ruff: noqa: T201 `print` found
+# ruff: noqa: PLR2004 Magic value used in comparison
 
 from __future__ import annotations
 
@@ -23,6 +24,10 @@ class FlatResults:
     def __init__(self, flat_results: list[dict[str, Any]]):
         self.flat_results = flat_results
 
+        def _patch_gpu_renderer(gpu: str, cpu: str) -> str:
+            """Replace generic integrated graphics messages with CPU info."""
+            return cpu if gpu == "AMD Radeon (TM) Graphics" else gpu
+
         self.flattened_results = []
         for result in flat_results:
             machine_info = result["machine_info"]
@@ -41,10 +46,11 @@ class FlatResults:
                         "iso": result["iso"],
                         "os_system": machine_info["os_system"],
                         "cpu_manufacturer": machine_info["cpu_manufacturer"],
+                        "cpu_freq_max": machine_info["cpu_freq_max"],
                         "gpu_vendor": result["gpu_vendor"],
-                        "gpu_renderer": result["gpu_renderer"],
+                        "gpu_renderer": _patch_gpu_renderer(result["gpu_renderer"], machine_info["cpu_manufacturer"]),
                         "machine_id": result["machine_id"],
-                        "machine_id_with_renderer": result["machine_id_with_renderer"]
+                        "machine_id_with_renderer": result["machine_id_with_renderer"],
                     }
                 )
 

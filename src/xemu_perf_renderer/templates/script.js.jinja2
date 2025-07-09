@@ -290,7 +290,8 @@ document.addEventListener("DOMContentLoaded", function () {
                             d.gpu_renderer,
                             d.renderer,
                             d.machine_id,
-                            d.machine_id_with_renderer
+                            d.machine_id_with_renderer,
+                            d.iso
                         ]),
                         hovertemplate: "<b>%{y:.2f} ms</b><br>" +
                             "Xemu    %{customdata[0]}<br>" +
@@ -298,10 +299,11 @@ document.addEventListener("DOMContentLoaded", function () {
                             "CPU     %{customdata[2]}<br>" +
                             "GPU     %{customdata[3]}<br>" +
                             "Backend %{customdata[4]}<br>" +
+                            "%{customdata[7]}<br>" +
                             "<extra></extra>"
                     });
                 }
-                 
+
                 layout = {
                     title: {
                         text: `${testName} by ${scheme.title}`,
@@ -347,14 +349,17 @@ document.addEventListener("DOMContentLoaded", function () {
                             d.gpu_renderer,
                             d.renderer,
                             d.machine_id,
-                            d.machine_id_with_renderer
+                            d.machine_id_with_renderer,
+                            d.iso,
+                            d.cpu_freq_max
                         ]),
                         hovertemplate: "<b>%{y:.2f} ms</b><br>" +
                             "Xemu    %{customdata[0]}<br>" +
                             "OS      %{customdata[1]}<br>" +
-                            "CPU     %{customdata[2]}<br>" +
+                            "CPU     %{customdata[2]} [%{customdata[8]}]<br>" +
                             "GPU     %{customdata[3]}<br>" +
                             "Backend %{customdata[4]}<br>" +
+                            "%{customdata[7]}<br>" +
                             "<extra></extra>"
                     });
                 }
