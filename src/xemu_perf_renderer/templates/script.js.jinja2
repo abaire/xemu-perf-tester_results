@@ -132,6 +132,31 @@ function processData(rawData, excludeMaxOutlier) {
     });
 }
 
+function shortVersion(xemu_version) {
+    {# Release build:   xemu-0.8.92-master-<githash> #}
+    {# Local dev build: xemu-0.8.92-<build>-g<shorthash>-<branch_name>-<githash> #}
+    {# PR against fork: xemu-0.0.0- -<githash> #}
+
+    console.assert(xemu_version)
+
+    match = xemu_version.match(/xemu-([0-9]+.[0-9]+.[0-9]+)-([0-9]+)-g.+-(.+)-.+/);
+    if (match && match[1]) {
+        return `${match[1]}-${match[2]}-${match[3]}`;
+    }
+
+    match = xemu_version.match(/xemu-([0-9]+.[0-9]+.[0-9]+)-master-.*/);
+    if (match && match[1]) {
+        return `${match[1]}`;
+    }
+
+    match = xemu_version.match(/xemu-0.0.0-\s+-(.*)/);
+    if (match && match[1]) {
+        return `fork-${match[1]}`
+    }
+
+    return xemu_version;
+}
+
 document.addEventListener("DOMContentLoaded", function () {
     let debounceTimer;
     const __allRawData = {{ results_data | tojson | safe }};
@@ -304,23 +329,6 @@ document.addEventListener("DOMContentLoaded", function () {
         chipArea.appendChild(chip);
     }
 
-    function shortVersion(xemu_version) {
-        {#  xemu-0.8.92-master-<githash> #}
-        {#  xemu-0.8.92-<build>-g<shorthash>-<branch_name>-<githash> #}
-
-        match = xemu_version.match(/xemu-([0-9]+.[0-9]+.[0-9]+)-([0-9]+)-g.+-(.+)-.+/);
-        if (match && match[1]) {
-            return `${match[1]}-${match[2]}-${match[3]}`;
-        }
-
-        match = xemu_version.match(/xemu-([0-9]+.[0-9]+.[0-9]+)-master-.*/);
-        if (match && match[1]) {
-            return `${match[1]}`;
-        }
-
-        return xemu_version;
-    }
-
     function buildChartButtons(onExpand, onShare) {
         const buttonsContainer = document.createElement("div");
         buttonsContainer.className = "chart-buttons-container";
@@ -478,10 +486,7 @@ document.addEventListener("DOMContentLoaded", function () {
             .sort((a, b) => {
                 const valA = (selectedSchemeKey === "by-version") ? shortVersion(a[scheme.field]) : a[scheme.field];
                 const valB = (selectedSchemeKey === "by-version") ? shortVersion(b[scheme.field]) : b[scheme.field];
-                if (typeof valA === "string") {
-                    return valA.localeCompare(valB);
-                }
-                return valA - valB;
+                return valA.localeCompare(valB);
             });
 
         const lineTrace = {
@@ -580,7 +585,13 @@ document.addEventListener("DOMContentLoaded", function () {
             const chartDiv = addChartContainer(testName);
 
             const testData = testsByName[testName];
-            const xCategories = [...new Set(testData.map(d => d[scheme.field]))].sort((a, b) => a.localeCompare(b));
+
+            const xCategories = [...new Set(testData.map(d => d[scheme.field]))].sort((a, b) => {
+                const valA = (selectedSchemeKey === "by-version") ? shortVersion(a) : a;
+                const valB = (selectedSchemeKey === "by-version") ? shortVersion(b) : b;
+                return valA.localeCompare(valB);
+            });
+
             const categoryMap = new Map(xCategories.map((cat, i) => [cat, i]));
 
             const pointsPerCategory = {};
@@ -711,10 +722,8 @@ document.addEventListener("DOMContentLoaded", function () {
             const searchableString = kSearchableDataFields.map(key => d[key]).join(" ").toLowerCase();
 
             if (filterText) {
-                console.log("Apply partial filter ", filterText);
                 if (filterText.startsWith("!")) {
                     if (filterText.length > 1 && searchableString.includes(filterText.substring(1))) {
-                        console.log("Negate input ", filterText, " =>  ", filterText.substring(1));
                         return false;
                     }
                 } else if (!searchableString.includes(filterText)) {
