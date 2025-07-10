@@ -26,6 +26,10 @@ const kCommonXAxisConfig = {
     zeroline: false
 };
 
+const kCommonYAxisConfig = {
+    zeroline: false
+};
+
 const kCommonMarkerConfig = {
     size: 12
 };
@@ -237,11 +241,22 @@ document.addEventListener("DOMContentLoaded", function () {
         return buttonsContainer;
     }
 
+    function addChartContainer(name) {
+        const chartContainerDiv = document.createElement("div");
+        chartContainerDiv.className = "chart-container";
+
+        const chartDiv = document.createElement("div");
+        chartDiv.className = "chart-div";
+        chartDiv.dataset.testName = name;
+
+        chartContainerDiv.appendChild(chartDiv);
+        chartsContainer.appendChild(chartContainerDiv);
+
+        return chartDiv;
+    }
+
     function renderSummaryChart(scheme, processedData) {
-        const summaryChartDiv = document.createElement("div");
-        summaryChartDiv.className = "chart-container";
-        summaryChartDiv.dataset.testName = "summary-chart";
-        chartsContainer.appendChild(summaryChartDiv);
+        const summaryChartDiv = addChartContainer("summary-chart");
 
         const means = {};
         for (const d of processedData) {
@@ -278,7 +293,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 ...kCommonXAxisConfig,
                 title: scheme.title,
             },
-            yaxis: {title: "Sum of averages"},
+            yaxis: {...kCommonYAxisConfig, title: "Sum of averages"},
             hoverlabel: kTooltipConfig
         };
         Plotly.newPlot(summaryChartDiv, [trace], layout, responsiveChartConfig);
@@ -457,10 +472,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const testsByName = filteredTestsByName(processedData, filterText)
 
         for (const testName in testsByName) {
-            const chartDiv = document.createElement("div");
-            chartDiv.className = "chart-container";
-            chartDiv.dataset.testName = testName;
-            chartsContainer.appendChild(chartDiv);
+            const chartDiv = addChartContainer(testName);
 
             const testData = testsByName[testName];
             const xCategories = [...new Set(testData.map(d => d[scheme.field]))].sort((a, b) => a.localeCompare(b));
@@ -527,7 +539,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     tickvals: Array.from(categoryMap.values()),
                     ticktext: Array.from(categoryMap.keys()).map(cat => (selectedSchemeKey === "by-version" ? shortVersion(cat) : cat))
                 },
-                yaxis: {title: "Avg duration (ms)", autorange: true},
+                yaxis: {...kCommonYAxisConfig, title: "Avg duration (ms)", autorange: true},
                 showlegend: selectedSchemeKey !== "by-version",
                 hoverlabel: kTooltipConfig
             };
