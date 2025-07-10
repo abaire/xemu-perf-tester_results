@@ -213,9 +213,9 @@ document.addEventListener("DOMContentLoaded", function () {
             params.set("dataFilter", dataFilter);
         }
 
-        const chipElements = document.querySelectorAll('#data-filter-chip-area .chip');
+        const chipElements = document.querySelectorAll("#data-filter-chip-area .chip");
         chipElements.forEach(chip => {
-            params.append('df', chip.dataset.filterValue);
+            params.append("df", chip.dataset.filterValue);
         });
 
         if (anchorTestName) {
@@ -267,7 +267,7 @@ document.addEventListener("DOMContentLoaded", function () {
             dataFilterInput.value = dataFilter;
         }
 
-        const chips = params.getAll('df');
+        const chips = params.getAll("df");
         if (chips.length > 0) {
             chips.forEach(chipText => createDataFilterChip(chipText));
         }
@@ -281,6 +281,10 @@ document.addEventListener("DOMContentLoaded", function () {
         const chip = document.createElement("div");
         chip.className = "chip";
         chip.dataset.filterValue = text;
+        if (text.startsWith("!")) {
+            chip.classList.add("chip-negated");
+            text = text.substring(1);
+        }
 
         const chipText = document.createElement("span");
         chipText.textContent = text;
@@ -685,6 +689,46 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+    function loadFilters(positiveFilterArray, negativeFilterArray) {
+        const chipElements = document.querySelectorAll("#data-filter-chip-area .chip");
+
+        chipElements.forEach(chip => {
+            const filterValue = chip.dataset.filterValue.toLowerCase();
+            if (filterValue.startsWith("!")) {
+                negativeFilterArray.push(filterValue.substring(1));
+            } else {
+                positiveFilterArray.push(filterValue);
+            }
+        });
+    }
+
+    function applyFilters(loadedData, filterText, positiveFilters, negativeFilters) {
+        if (!loadedData || !(filterText || positiveFilters.length > 0 || negativeFilters.length > 0)) {
+            return loadedData;
+        }
+
+        return loadedData.filter(d => {
+            const searchableString = kSearchableDataFields.map(key => d[key]).join(" ").toLowerCase();
+
+            if (filterText) {
+                console.log("Apply partial filter ", filterText);
+                if (filterText.startsWith("!")) {
+                    if (filterText.length > 1 && searchableString.includes(filterText.substring(1))) {
+                        console.log("Negate input ", filterText, " =>  ", filterText.substring(1));
+                        return false;
+                    }
+                } else if (!searchableString.includes(filterText)) {
+                    return false;
+                }
+            }
+
+            const hasAllPositive = positiveFilters.every(term => searchableString.includes(term));
+            const hasAnyNegative = negativeFilters.some(term => searchableString.includes(term));
+
+            return hasAllPositive && !hasAnyNegative;
+        });
+    }
+
     function renderAllCharts() {
         const excludeOutliers = outlierCheckbox.checked;
         const showErrorBars = showErrorBarsCheckbox.checked;
@@ -692,33 +736,24 @@ document.addEventListener("DOMContentLoaded", function () {
         const scheme = comparisonSchemes[selectedSchemeKey];
         const testFilterText = testFilterInput.value.toLowerCase().trim();
         const dataFilterText = dataFilterInput.value.toLowerCase().trim();
-        const chipElements = document.querySelectorAll('#data-filter-chip-area .chip');
-        const dataFilterTerms = Array.from(chipElements).map(chip => chip.dataset.filterValue.toLowerCase());
+
+        const positiveFilters = [];
+        const negativeFilters = [];
+        loadFilters(positiveFilters, negativeFilters);
 
         localStorage.setItem("xemuPerfChartMode", selectedSchemeKey);
         localStorage.setItem("xemuPerfExcludeOutlier", excludeOutliers);
 
         chartsContainer.innerHTML = "";
 
-        let filteredRawData = loadedData;
-        if (filteredRawData && (dataFilterText || dataFilterTerms.length > 0)) {
-            filteredRawData = loadedData.filter(d => {
-                const searchableString = kSearchableDataFields.map(key => d[key]).join(" ").toLowerCase();
-
-                if (dataFilterText && !searchableString.includes(dataFilterText)) {
-                    return false;
-                }
-
-                return dataFilterTerms.every(term => searchableString.includes(term));
-            });
-        }
+        let filteredRawData = applyFilters(loadedData, dataFilterText, positiveFilters, negativeFilters);
         if (!filteredRawData || filteredRawData.length === 0) {
             chartsContainer.innerHTML = "<p>No data available to display.</p>";
             return;
         }
 
         const processedData = processData(filteredRawData, excludeOutliers);
-        if (!testFilterText && !dataFilterText) {
+        if (!testFilterText && !(dataFilterText || positiveFilters.length > 0 || negativeFilters.length > 0)) {
             renderSummaryChart(scheme, processedData);
         }
         renderTestResultCharts(selectedSchemeKey, scheme, processedData, testFilterText, showErrorBars);
@@ -749,12 +784,16 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function updateFilterSuggestions() {
-        const filterText = dataFilterInput.value.toLowerCase().trim();
+        const rawText = dataFilterInput.value.toLowerCase().trim();
+        const isNegated = rawText.startsWith('!');
+        const filterText = (isNegated ? rawText.substring(1) : rawText).toLowerCase().trim();
 
         if (!filterText) {
             suggestionsOverlay.style.display = "none";
             return;
         }
+
+        suggestionsOverlay.classList.toggle('negated', isNegated);
 
         const inputContainer = document.getElementById("data-filter-container");
         if (inputContainer) {
@@ -852,15 +891,19 @@ document.addEventListener("DOMContentLoaded", function () {
         if (event.key === "Enter") {
             event.preventDefault();
             const text = dataFilterInput.value.trim();
-            if (text) {
+            dataFilterInput.value = "";
+            dataFilterInput.classList.remove('negated');
+            suggestionsOverlay.style.display = "none";
+
+            if (text && text !== "!") {
                 createDataFilterChip(text);
-                dataFilterInput.value = "";
-                suggestionsOverlay.style.display = "none";
                 handleFilterChange();
             }
         }
     });
     dataFilterInput.addEventListener("input", () => {
+        dataFilterInput.classList.toggle('negated', dataFilterInput.value.startsWith('!'));
+
         updateFilterSuggestions();
         handleDebouncedChange();
     });
