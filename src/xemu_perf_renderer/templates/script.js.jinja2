@@ -37,6 +37,18 @@ const kMachineContinuityLineStyle = {
     width: 2
 };
 
+function styleTitle(titleString) {
+    return {
+        text: titleString,
+        font: {
+            family: "Arial",
+            size: 22
+        },
+        x: 0.5,
+        xanchor: "center"
+    }
+}
+
 document.addEventListener("DOMContentLoaded", function () {
     let debounceTimer;
     const allRawData = {{ results_data | tojson | safe }};
@@ -233,15 +245,7 @@ document.addEventListener("DOMContentLoaded", function () {
         };
 
         const layout = {
-            title: {
-                text: "Overall average duration (lower is better)",
-                font: {
-                    family: "Arial",
-                    size: 22
-                },
-                x: 0.5,
-                xanchor: "center"
-            },
+            title: styleTitle("Overall average duration (lower is better)"),
             xaxis: {
                 ...kCommonXAxisConfig,
                 title: scheme.title,
@@ -357,6 +361,31 @@ document.addEventListener("DOMContentLoaded", function () {
         Plotly.addTraces(chart, lineTrace);
     }
 
+    function buildCustomData(machineData) {
+        return machineData.map(d => [
+            d.xemu_version,
+            d.os_system,
+            d.cpu_manufacturer,
+            d.gpu_renderer,
+            d.renderer,
+            d.machine_id,
+            d.machine_id_with_renderer,
+            d.iso,
+            d.cpu_freq_max
+        ]);
+    }
+
+    function buildHoverTemplate() {
+        return "<b>%{y:.2f} ms</b><br>" +
+            "Xemu    %{customdata[0]}<br>" +
+            "OS      %{customdata[1]}<br>" +
+            "CPU     %{customdata[2]} [%{customdata[8]}]<br>" +
+            "GPU     %{customdata[3]}<br>" +
+            "Backend %{customdata[4]}<br>" +
+            "%{customdata[7]}<br>" +
+            "<extra></extra>"
+    }
+
     function renderTestResultCharts(selectedSchemeKey, scheme, processedData, filterText) {
         const testsByName = filteredTestsByName(processedData, filterText)
 
@@ -415,24 +444,8 @@ document.addEventListener("DOMContentLoaded", function () {
                         },
                         x: machineData.map(d => d.jitteredX),
                         y: machineData.map(d => d.average_ms),
-                        customdata: machineData.map(d => [
-                            d.xemu_version,
-                            d.os_system,
-                            d.cpu_manufacturer,
-                            d.gpu_renderer,
-                            d.renderer,
-                            d.machine_id,
-                            d.machine_id_with_renderer,
-                            d.iso
-                        ]),
-                        hovertemplate: "<b>%{y:.2f} ms</b><br>" +
-                            "Xemu    %{customdata[0]}<br>" +
-                            "OS      %{customdata[1]}<br>" +
-                            "CPU     %{customdata[2]}<br>" +
-                            "GPU     %{customdata[3]}<br>" +
-                            "Backend %{customdata[4]}<br>" +
-                            "%{customdata[7]}<br>" +
-                            "<extra></extra>"
+                        customdata: buildCustomData(machineData),
+                        hovertemplate: buildHoverTemplate()
                     });
                 }
             } else {
@@ -454,39 +467,14 @@ document.addEventListener("DOMContentLoaded", function () {
                         },
                         x: machineData.map(d => d.jitteredX),
                         y: versionData.map(d => d.average_ms),
-                        customdata: versionData.map(d => [
-                            d.xemu_version,
-                            d.os_system,
-                            d.cpu_manufacturer,
-                            d.gpu_renderer,
-                            d.renderer,
-                            d.machine_id,
-                            d.machine_id_with_renderer,
-                            d.iso,
-                            d.cpu_freq_max
-                        ]),
-                        hovertemplate: "<b>%{y:.2f} ms</b><br>" +
-                            "Xemu    %{customdata[0]}<br>" +
-                            "OS      %{customdata[1]}<br>" +
-                            "CPU     %{customdata[2]} [%{customdata[8]}]<br>" +
-                            "GPU     %{customdata[3]}<br>" +
-                            "Backend %{customdata[4]}<br>" +
-                            "%{customdata[7]}<br>" +
-                            "<extra></extra>"
+                        customdata: buildCustomData(versionData),
+                        hovertemplate: buildHoverTemplate()
                     });
                 }
             }
 
             layout = {
-                title: {
-                    text: `${testName} by ${scheme.title}`,
-                    font: {
-                        family: "Arial",
-                        size: 22
-                    },
-                    x: 0.5,
-                    xanchor: "center"
-                },
+                title: styleTitle(`${testName} by ${scheme.title}`),
                 xaxis: {
                     ...kCommonXAxisConfig,
                     title: scheme.title,
