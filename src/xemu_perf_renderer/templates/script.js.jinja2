@@ -213,6 +213,11 @@ document.addEventListener("DOMContentLoaded", function () {
             params.set("dataFilter", dataFilter);
         }
 
+        const chipElements = document.querySelectorAll('#data-filter-chip-area .chip');
+        chipElements.forEach(chip => {
+            params.append('df', chip.dataset.filterValue);
+        });
+
         if (anchorTestName) {
             params.set("anchor", anchorTestName);
         }
@@ -262,7 +267,37 @@ document.addEventListener("DOMContentLoaded", function () {
             dataFilterInput.value = dataFilter;
         }
 
+        const chips = params.getAll('df');
+        if (chips.length > 0) {
+            chips.forEach(chipText => createDataFilterChip(chipText));
+        }
+
         return params.get("anchor");
+    }
+
+    function createDataFilterChip(text) {
+        const chipArea = document.getElementById("data-filter-chip-area");
+
+        const chip = document.createElement("div");
+        chip.className = "chip";
+        chip.dataset.filterValue = text;
+
+        const chipText = document.createElement("span");
+        chipText.textContent = text;
+
+        const closeBtn = document.createElement("span");
+        closeBtn.className = "chip-close-btn";
+        closeBtn.innerHTML = "&times;";
+
+        closeBtn.addEventListener("click", () => {
+            chip.remove();
+            handleFilterChange();
+        });
+
+        chip.appendChild(chipText);
+        chip.appendChild(closeBtn);
+
+        chipArea.appendChild(chip);
     }
 
     function shortVersion(xemu_version) {
@@ -657,6 +692,8 @@ document.addEventListener("DOMContentLoaded", function () {
         const scheme = comparisonSchemes[selectedSchemeKey];
         const testFilterText = testFilterInput.value.toLowerCase().trim();
         const dataFilterText = dataFilterInput.value.toLowerCase().trim();
+        const chipElements = document.querySelectorAll('#data-filter-chip-area .chip');
+        const dataFilterTerms = Array.from(chipElements).map(chip => chip.dataset.filterValue.toLowerCase());
 
         localStorage.setItem("xemuPerfChartMode", selectedSchemeKey);
         localStorage.setItem("xemuPerfExcludeOutlier", excludeOutliers);
@@ -664,10 +701,15 @@ document.addEventListener("DOMContentLoaded", function () {
         chartsContainer.innerHTML = "";
 
         let filteredRawData = loadedData;
-        if (filteredRawData && dataFilterText) {
+        if (filteredRawData && (dataFilterText || dataFilterTerms.length > 0)) {
             filteredRawData = loadedData.filter(d => {
                 const searchableString = kSearchableDataFields.map(key => d[key]).join(" ").toLowerCase();
-                return searchableString.includes(dataFilterText);
+
+                if (dataFilterText && !searchableString.includes(dataFilterText)) {
+                    return false;
+                }
+
+                return dataFilterTerms.every(term => searchableString.includes(term));
             });
         }
         if (!filteredRawData || filteredRawData.length === 0) {
@@ -805,6 +847,19 @@ document.addEventListener("DOMContentLoaded", function () {
     outlierCheckbox.addEventListener("change", handleFilterChange);
     showErrorBarsCheckbox.addEventListener("change", handleFilterChange);
     testFilterInput.addEventListener("input", handleDebouncedChange);
+
+    dataFilterInput.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            const text = dataFilterInput.value.trim();
+            if (text) {
+                createDataFilterChip(text);
+                dataFilterInput.value = "";
+                suggestionsOverlay.style.display = "none";
+                handleFilterChange();
+            }
+        }
+    });
     dataFilterInput.addEventListener("input", () => {
         updateFilterSuggestions();
         handleDebouncedChange();

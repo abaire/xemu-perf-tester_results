@@ -31,27 +31,35 @@
                 <label for="error-bars-checkbox">Show error bars</label>
             </div>
         </div>
-        <div class="control-item">
-            <div class="search-container">
-                <label for="test-filter">Test filter</label>
-                <input type="search"
-                       id="test-filter"
-                       placeholder="Filter by test name...">
-            </div>
-        </div>
-        <div class="control-item">
-            <div class="search-container">
-                <label for="data-filter">Data filter</label>
 
-                <div class="data-filter-wrapper">
+        <div class="control-item">
+            <div class="search-container">
+                <div class="labeled-input-row">
+                    <label for="test-filter">Test filter</label>
                     <input type="search"
-                           id="data-filter"
-                           autocomplete="off"
-                           placeholder="Filter by data (e.g., 'Intel')...">
-                    <div id="data-filter-suggestions"></div>
+                           id="test-filter"
+                           placeholder="Filter by test name...">
                 </div>
             </div>
         </div>
+
+        <div class="control-item">
+            <div class="search-container">
+                <div class="labeled-input-row">
+                    <label for="data-filter">Data filter</label>
+                    <div class="data-filter-wrapper">
+                        <input type="search"
+                               id="data-filter"
+                               autocomplete="off"
+                               placeholder="Filter by data (e.g., 'Intel')...">
+                        <div id="data-filter-suggestions"></div>
+                    </div>
+                </div>
+
+                <div id="data-filter-chip-area"></div>
+            </div>
+        </div>
+
     </div>
 </footer>
 
