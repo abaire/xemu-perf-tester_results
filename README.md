@@ -118,8 +118,9 @@ run.bat --xemu-tag <release>
 - the URL of a pull request (PR) (e.g.,
   `https://github.com/xemu-project/xemu/pull/2329`).
 
-The action and PR options additionally require you to pass a GitHub token using
-the `--github-token` argument. See `--help` for details.
+The action and PR options additionally require you to pass a 
+[GitHub personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-fine-grained-personal-access-token) 
+using the `--github-token` argument. See `--help` for details.
 
 #### Running with a development / PR build
 
