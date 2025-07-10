@@ -30,9 +30,10 @@ const kCommonYAxisConfig = {
     zeroline: false
 };
 
-const kCommonMarkerConfig = {
-    size: 12
-};
+const kMinMaxMarkerSize = 18;
+const kMinMaxMarkerBorderSize = 3;
+const kDefaultMarkerSize = 12;
+const kCommonMarkerConfig = {};
 
 const kSearchableDataFields = [
     "cpu_manufacturer",
@@ -157,6 +158,24 @@ function shortVersion(xemu_version) {
     return xemu_version;
 }
 
+function augmentMinMax(data) {
+    const machines = data.reduce((acc, d) => {
+        (acc[d.machine_id] = acc[d.machine_id] || []).push(d);
+        return acc;
+    }, {});
+
+    for (const machineId in machines) {
+        const machineData = machines[machineId];
+        if (machineData.length < 2) continue;
+
+        const minPoint = machineData.reduce((min, p) => p.average_ms < min.average_ms ? p : min);
+        const maxPoint = machineData.reduce((max, p) => p.average_ms > max.average_ms ? p : max);
+
+        minPoint.isMin = true;
+        maxPoint.isMax = true;
+    }
+}
+
 document.addEventListener("DOMContentLoaded", function () {
     let debounceTimer;
     const __allRawData = {{ results_data | tojson | safe }};
@@ -164,8 +183,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const chartsContainer = document.getElementById("charts-container");
     const viewModeSelector = document.getElementById("slice-selector");
+
     const outlierCheckbox = document.getElementById("outlier-checkbox");
     const showErrorBarsCheckbox = document.getElementById("error-bars-checkbox");
+    const highlightMinMaxCheckbox = document.getElementById("highlight-minmax-checkbox");
 
     const fullscreenOverlay = document.getElementById("fullscreen-overlay");
     const fullscreenChartDiv = document.getElementById("fullscreen-chart");
@@ -228,6 +249,11 @@ document.addEventListener("DOMContentLoaded", function () {
             params.set("showErrorBars", showErrorBars);
         }
 
+        const highlight = highlightMinMaxCheckbox.checked;
+        if (highlight) {
+            params.set("hmm", "true");
+        }
+
         const testFilter = testFilterInput.value;
         if (testFilter) {
             params.set("testFilter", testFilter);
@@ -280,6 +306,11 @@ document.addEventListener("DOMContentLoaded", function () {
         const showErrorBars = params.get("showErrorBars");
         if (showErrorBars) {
             showErrorBarsCheckbox.checked = showErrorBars === "true";
+        }
+
+        const highlight = params.get("hmm");
+        if (highlight) {
+            highlightMinMaxCheckbox.checked = highlight === "true";
         }
 
         const testFilter = params.get("testFilter");
@@ -551,7 +582,16 @@ document.addEventListener("DOMContentLoaded", function () {
             marker: {
                 ...kCommonMarkerConfig,
                 symbol: data.map(d => symbolForRendererBackend(d.renderer)),
-                color: color
+                color: color,
+                size: data.map(d => d.isMin || d.isMax ? kMinMaxMarkerSize : kDefaultMarkerSize),
+                line: {
+                    color: data.map(d => {
+                        if (d.isMin) return 'green';
+                        if (d.isMax) return 'red';
+                        return 'rgba(0,0,0,0)';
+                    }),
+                    width: data.map(d => d.isMin || d.isMax ? kMinMaxMarkerBorderSize : 0)
+                }
             },
             x: data.map(d => d.jitteredX),
             y: data.map(d => d.average_ms),
@@ -578,7 +618,12 @@ document.addEventListener("DOMContentLoaded", function () {
         };
     }
 
-    function renderTestResultCharts(selectedSchemeKey, scheme, processedData, filterText, showErrorBars) {
+    function renderTestResultCharts(selectedSchemeKey,
+                                    scheme,
+                                    processedData,
+                                    filterText,
+                                    showErrorBars,
+                                    highlightMinMax) {
         const testsByName = filteredTestsByName(processedData, filterText)
 
         for (const testName in testsByName) {
@@ -593,6 +638,10 @@ document.addEventListener("DOMContentLoaded", function () {
             });
 
             const categoryMap = new Map(xCategories.map((cat, i) => [cat, i]));
+
+            if (highlightMinMax) {
+                augmentMinMax(testData)
+            }
 
             const pointsPerCategory = {};
             testData.forEach(d => {
@@ -741,6 +790,8 @@ document.addEventListener("DOMContentLoaded", function () {
     function renderAllCharts() {
         const excludeOutliers = outlierCheckbox.checked;
         const showErrorBars = showErrorBarsCheckbox.checked;
+        const highlightMinMax = highlightMinMaxCheckbox.checked;
+
         const selectedSchemeKey = viewModeSelector.value;
         const scheme = comparisonSchemes[selectedSchemeKey];
         const testFilterText = testFilterInput.value.toLowerCase().trim();
@@ -765,7 +816,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (!testFilterText && !(dataFilterText || positiveFilters.length > 0 || negativeFilters.length > 0)) {
             renderSummaryChart(scheme, processedData);
         }
-        renderTestResultCharts(selectedSchemeKey, scheme, processedData, testFilterText, showErrorBars);
+        renderTestResultCharts(selectedSchemeKey, scheme, processedData, testFilterText, showErrorBars, highlightMinMax);
     }
 
     function highlightMatch(fullText, filterText) {
@@ -892,8 +943,11 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     viewModeSelector.addEventListener("change", handleFilterChange);
+
     outlierCheckbox.addEventListener("change", handleFilterChange);
     showErrorBarsCheckbox.addEventListener("change", handleFilterChange);
+    highlightMinMaxCheckbox.addEventListener("change", handleFilterChange);
+
     testFilterInput.addEventListener("input", handleDebouncedChange);
 
     dataFilterInput.addEventListener("keydown", (event) => {
