@@ -12,6 +12,7 @@ import json
 import logging
 import os
 import sys
+from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
@@ -19,11 +20,17 @@ from jinja2 import Environment, FileSystemLoader
 
 logger = logging.getLogger(__name__)
 
+_TREND_MIN_CHANGE_PERCENTAGE = 0.08
+
+# Keep in sync with script
+_NO_TREND = "N"
+_STABLE_TREND = "S"
+_IMPROVING_TREND = "I"
+_WORSENING_TREND = "W"
+
 
 class FlatResults:
     def __init__(self, flat_results: list[dict[str, Any]]):
-        self.flat_results = flat_results
-
         def _patch_gpu_renderer(gpu: str, cpu: str) -> str:
             """Replace generic integrated graphics messages with CPU info."""
             return cpu if gpu == "AMD Radeon (TM) Graphics" else gpu
@@ -32,14 +39,21 @@ class FlatResults:
         for result in flat_results:
             machine_info = result["machine_info"]
             for test_result in result.get("results", []):
+                iterations = test_result["iterations"]
+                max_us = test_result["max_us"]
+                total_us = test_result["total_us"]
+                average_us = test_result["average_us"]
+                average_excluiding_max = (total_us - max_us) / (iterations - 1) if iterations > 1 else average_us
+
                 flattened = {
                     "suite": test_result["name"].split("::")[0] if "::" in test_result["name"] else "N/A",
                     "test_name": test_result["name"],
-                    "average_us": test_result["average_us"],
-                    "total_us": test_result["total_us"],
-                    "max_us": test_result["max_us"],
+                    "average_us": average_us,
+                    "average_us_exmax": average_excluiding_max,
+                    "total_us": total_us,
+                    "max_us": max_us,
                     "min_us": test_result["min_us"],
-                    "iterations": test_result["iterations"],
+                    "iterations": iterations,
                     "xemu_version": result["xemu_version"],
                     "renderer": result["renderer"],
                     "iso": result["iso"],
@@ -58,6 +72,54 @@ class FlatResults:
                     flattened["inner_min_us"] = raw_results[1]
 
                 self.flattened_results.append(flattened)
+
+        self.analyze()
+
+    def _calculate_slope(self, points: list[tuple[int, float]]) -> float:
+        """Calculates the slope of the line of best fit for a set of points."""
+        n = len(points)
+        if n < 2:
+            return 0.0
+
+        sum_x = sum(p[0] for p in points)
+        sum_y = sum(p[1] for p in points)
+        sum_xy = sum(p[0] * p[1] for p in points)
+        sum_x_squared = sum(p[0] ** 2 for p in points)
+
+        numerator = n * sum_xy - sum_x * sum_y
+        denominator = n * sum_x_squared - sum_x**2
+
+        return numerator / denominator if denominator != 0 else 0.0
+
+    def analyze(self):
+        grouped_by_test_and_machine = defaultdict(list)
+        for entry in self.flattened_results:
+            key = (entry["test_name"], entry["machine_id_with_renderer"])
+            grouped_by_test_and_machine[key].append(entry)
+
+        for data_points in grouped_by_test_and_machine.values():
+            if len(data_points) < 3:
+                continue
+
+            data_points.sort(key=lambda entry: entry["xemu_version"])
+            regression_points = [(idx, entry["average_us_exmax"]) for idx, entry in enumerate(data_points)]
+            slope = self._calculate_slope(regression_points)
+
+            average_y = sum(p[1] for p in regression_points) / len(regression_points)
+            threshold = average_y * _TREND_MIN_CHANGE_PERCENTAGE
+
+            trend = _STABLE_TREND
+            if slope > threshold:
+                trend = _WORSENING_TREND
+            elif slope < -threshold:
+                trend = _IMPROVING_TREND
+
+            for entry in data_points:
+                entry["trend"] = trend
+
+        for entry in self.flattened_results:
+            if "trend" not in entry:
+                entry["trend"] = _NO_TREND
 
     def render(self, output_dir: str, html_file_name: str):
         env = _get_jinja2_env()

@@ -41,7 +41,8 @@ const kSearchableDataFields = [
     "os_system",
     "renderer",
     "xemu_version",
-    "machine_info"
+    "machine_info",
+    "trend"
 ];
 
 const kDebounceTimeoutMilliseconds = 100;
@@ -67,9 +68,74 @@ function styleTitle(titleString) {
     }
 }
 
+function expandTrendEnum(val) {
+    {# Keep in sync with renderer.py #}
+    switch (val) {
+        case "W":
+            return "Worsening";
+        case "N":
+            return "";  {# Insufficient data to detect trending. #}
+        case "S":
+            return "Stable";
+        case "I":
+            return "Improving";
+    }
+}
+
+function expandData(rawData) {
+    return rawData.map(d => {
+        return {
+            ...d,
+            trend: expandTrendEnum(d.trend)
+        };
+    });
+}
+
+function processData(rawData, excludeMaxOutlier) {
+    return rawData.map(d => {
+        let average_us = d.average_us;
+        let max_us = d.max_us;
+        let min_us = d.min_us;
+
+        if (excludeMaxOutlier) {
+            average_us = d.average_us_exmax;
+            max_us = d.inner_max_us;
+        }
+
+        let error_plus_us;
+        let error_minus_us;
+        let adjusted_max_ms;
+        let adjusted_min_ms;
+        if (isNaN(max_us) || isNaN(min_us)) {
+            error_plus_us = 0;
+            error_minus_us = 0;
+            adjusted_max_ms = NaN;
+            adjusted_min_ms = NaN;
+        } else {
+            error_plus_us = max_us - average_us;
+            error_minus_us = average_us - min_us;
+            adjusted_max_ms = max_us / 1000.0;
+            adjusted_min_ms = min_us / 1000.0;
+        }
+
+        return {
+            ...d,
+            average_us: average_us,
+            average_ms: average_us / 1000.0,
+            error_plus_us: error_plus_us,
+            error_minus_us: error_minus_us,
+            error_plus_ms: error_plus_us / 1000.0,
+            error_minus_ms: error_minus_us / 1000.0,
+            adjusted_max_ms: adjusted_max_ms,
+            adjusted_min_ms: adjusted_min_ms
+        };
+    });
+}
+
 document.addEventListener("DOMContentLoaded", function () {
     let debounceTimer;
-    const allRawData = {{ results_data | tojson | safe }};
+    const __allRawData = {{ results_data | tojson | safe }};
+    const loadedData = expandData(__allRawData);
 
     const chartsContainer = document.getElementById("charts-container");
     const viewModeSelector = document.getElementById("slice-selector");
@@ -405,6 +471,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function buildCustomData(machineData) {
+        console.log(machineData);
         return machineData.map(d => [
             d.xemu_version,
             d.os_system,
@@ -539,7 +606,11 @@ document.addEventListener("DOMContentLoaded", function () {
                     tickvals: Array.from(categoryMap.values()),
                     ticktext: Array.from(categoryMap.keys()).map(cat => (selectedSchemeKey === "by-version" ? shortVersion(cat) : cat))
                 },
-                yaxis: {...kCommonYAxisConfig, title: "Avg duration (ms)", autorange: true},
+                yaxis: {
+                    ...kCommonYAxisConfig,
+                    title: "Avg duration (ms)",
+                    autorange: true
+                },
                 showlegend: selectedSchemeKey !== "by-version",
                 hoverlabel: kTooltipConfig
             };
@@ -580,47 +651,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    function processData(rawData, excludeMaxOutlier) {
-        return rawData.map(d => {
-            let average_us = d.average_us;
-            let max_us = d.max_us;
-            let min_us = d.min_us;
-
-            if (excludeMaxOutlier) {
-                average_us = (d.total_us - d.max_us) / (d.iterations - 1);
-                max_us = d.inner_max_us;
-            }
-
-            let error_plus_us;
-            let error_minus_us;
-            let adjusted_max_ms;
-            let adjusted_min_ms;
-            if (isNaN(max_us) || isNaN(min_us)) {
-                error_plus_us = 0;
-                error_minus_us = 0;
-                adjusted_max_ms = NaN;
-                adjusted_min_ms = NaN;
-            } else {
-                error_plus_us = max_us - average_us;
-                error_minus_us = average_us - min_us;
-                adjusted_max_ms = max_us / 1000.0;
-                adjusted_min_ms = min_us / 1000.0;
-            }
-
-            return {
-                ...d,
-                average_us: average_us,
-                average_ms: average_us / 1000.0,
-                error_plus_us: error_plus_us,
-                error_minus_us: error_minus_us,
-                error_plus_ms: error_plus_us / 1000.0,
-                error_minus_ms: error_minus_us / 1000.0,
-                adjusted_max_ms: adjusted_max_ms,
-                adjusted_min_ms: adjusted_min_ms
-            };
-        });
-    }
-
     function renderAllCharts() {
         const excludeOutliers = outlierCheckbox.checked;
         const showErrorBars = showErrorBarsCheckbox.checked;
@@ -634,18 +664,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
         chartsContainer.innerHTML = "";
 
-        let filteredRawData = allRawData;
+        let filteredRawData = loadedData;
         if (filteredRawData && dataFilterText) {
-            filteredRawData = allRawData.filter(d => {
-                const searchableString = [
-                    d.cpu_manufacturer,
-                    d.gpu_renderer,
-                    d.gpu_vendor,
-                    d.os_system,
-                    d.renderer,
-                    d.xemu_version,
-                    d.machine_info
-                ].join(" ").toLowerCase();
+            filteredRawData = loadedData.filter(d => {
+                const searchableString = kSearchableDataFields.map(key => d[key]).join(" ").toLowerCase();
                 return searchableString.includes(dataFilterText);
             });
         }
@@ -701,7 +723,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         const matchCounts = {};
         let matchingMachines = new Set();
-        allRawData.forEach(d => {
+        loadedData.forEach(d => {
             for (const field of kSearchableDataFields) {
                 const value = d[field];
                 if (value && value.toLowerCase().includes(filterText)) {
