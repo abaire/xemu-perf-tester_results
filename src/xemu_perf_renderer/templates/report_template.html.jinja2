@@ -12,18 +12,24 @@
 <div id="charts-container"></div>
 
 <footer>
+    <a href="https://github.com/abaire/xemu-perf-tester_results?tab=readme-ov-file#submitting-results"
+       id="contribute-link" target="_blank" rel="noopener noreferrer">
+        Submit results!
+    </a>
     <div class="controls-container">
         <div class="control-item">
-            <label for="slice-selector">View charts by:</label>
+            <label for="slice-selector">Slice by</label>
             <select id="slice-selector"></select>
         </div>
-        <div class="control-item">
-            <input type="checkbox" id="outlier-checkbox">
-            <label for="outlier-checkbox">Exclude max outlier</label>
-        </div>
-        <div class="control-item">
-            <input type="checkbox" id="error-bars-checkbox">
-            <label for="error-bars-checkbox">Show error bars</label>
+        <div class="control-item-column">
+            <div class="control-item">
+                <input type="checkbox" id="outlier-checkbox">
+                <label for="outlier-checkbox">Exclude max outlier</label>
+            </div>
+            <div class="control-item">
+                <input type="checkbox" id="error-bars-checkbox">
+                <label for="error-bars-checkbox">Show error bars</label>
+            </div>
         </div>
         <div class="control-item">
             <div class="search-container">
