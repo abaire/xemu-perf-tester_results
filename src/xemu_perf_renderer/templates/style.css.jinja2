@@ -109,8 +109,16 @@ footer {
 }
 
 .search-container {
-    position: relative;
-    display: inline-block;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.labeled-input-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 #test-filter {
@@ -136,6 +144,36 @@ footer {
 
 #data-filter-container {
     position: relative;
+}
+
+#data-filter-chip-area {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    width: 100%;
+    margin-top: 8px;
+}
+
+.chip {
+    display: flex;
+    align-items: center;
+    background-color: #e0e0e0;
+    border-radius: 12px;
+    padding: 3px 10px;
+    font-size: 14px;
+    white-space: nowrap;
+}
+
+.chip-close-btn {
+    margin-left: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    color: #555;
+    font-size: 16px;
+}
+
+.chip-close-btn:hover {
+    color: #000;
 }
 
 #data-filter-suggestions {
