@@ -41,8 +41,8 @@ const kSearchableDataFields = [
     "gpu_vendor",
     "os_system",
     "renderer",
-    "xemu_version",
-    "machine_info",
+    "xemu_short_version",
+    "machine_id",
     "trend"
 ];
 
@@ -87,6 +87,7 @@ function expandData(rawData) {
     return rawData.map(d => {
         return {
             ...d,
+            xemu_short_version: shortVersion(d.xemu_version),
             trend: expandTrendEnum(d.trend)
         };
     });
