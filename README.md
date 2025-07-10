@@ -110,6 +110,17 @@ run.bat --xemu-tag <release>
 # E.g., run.bat --xemu-tag v0.8.90
 ```
 
+`--xemu_tag` accepts:
+
+- a xemu release version (e.g., `v0.8.92`)
+- the URL of a build action (e.g.,
+  `https://github.com/xemu-project/xemu/actions/runs/16152580613`)
+- the URL of a pull request (PR) (e.g.,
+  `https://github.com/xemu-project/xemu/pull/2329`).
+
+The action and PR options additionally require you to pass a GitHub token using
+the `--github-token` argument. See `--help` for details.
+
 #### Running with a development / PR build
 
 1. Build xemu (or download a PR artifact)
@@ -138,6 +149,17 @@ cd <someplace>/xemu-perf-tester_results
 
 # E.g., ./run.sh --xemu-tag v0.8.90
 ```
+
+`--xemu_tag` accepts:
+
+- a xemu release version (e.g., `v0.8.92`)
+- the URL of a build action (e.g.,
+  `https://github.com/xemu-project/xemu/actions/runs/16152580613`)
+- the URL of a pull request (PR) (e.g.,
+  `https://github.com/xemu-project/xemu/pull/2329`).
+
+The action and PR options additionally require you to pass a GitHub token using
+the `--github-token` argument. See `--help` for details.
 
 #### Running with a development / PR build
 
