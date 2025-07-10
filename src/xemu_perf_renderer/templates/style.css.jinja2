@@ -57,6 +57,12 @@ footer {
     flex-wrap: wrap;
 }
 
+.control-item-column {
+    display: flex;
+    align-items: flex-start;
+    flex-direction: column;
+}
+
 .control-item {
     display: flex;
     align-items: center;
@@ -192,4 +198,17 @@ footer {
 
 .share-button.copied {
     background-color: #d4edda;
+}
+
+#contribute-link {
+    position: fixed;
+    bottom: 5px;
+    right: 10px;
+    font-size: 12px;
+    color: #888;
+    text-decoration: none;
+}
+
+#contribute-link:hover {
+    text-decoration: underline;
 }
