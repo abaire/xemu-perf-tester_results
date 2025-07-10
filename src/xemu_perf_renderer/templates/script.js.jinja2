@@ -42,7 +42,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const allRawData = {{ results_data | tojson | safe }};
 
     const chartsContainer = document.getElementById("charts-container");
-    const selector = document.getElementById("slice-selector");
+    const viewModeSelector = document.getElementById("slice-selector");
     const outlierCheckbox = document.getElementById("outlier-checkbox");
 
     const fullscreenOverlay = document.getElementById("fullscreen-overlay");
@@ -72,16 +72,16 @@ document.addEventListener("DOMContentLoaded", function () {
         const option = document.createElement("option");
         option.value = key;
         option.textContent = comparisonSchemes[key].title;
-        selector.appendChild(option);
+        viewModeSelector.appendChild(option);
     }
 
     const savedMode = localStorage.getItem("xemuPerfChartMode");
     const savedOutlier = localStorage.getItem("xemuPerfExcludeOutlier");
 
     if (savedMode && comparisonSchemes[savedMode]) {
-        selector.value = savedMode;
+        viewModeSelector.value = savedMode;
     } else {
-        selector.value = "by-version";
+        viewModeSelector.value = "by-version";
     }
     if (savedOutlier) {
         outlierCheckbox.checked = (savedOutlier === "true");
@@ -90,6 +90,70 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     const responsiveChartConfig = {responsive: true};
+
+    function captureState(anchorTestName) {
+        const params = new URLSearchParams();
+
+        const outlier = outlierCheckbox.checked;
+        const testFilter = testFilterInput.value;
+        const dataFilter = dataFilterInput.value;
+
+        params.set('view', viewModeSelector.value);
+        if (outlier) {
+            params.set('outlier', outlier);
+        }
+        if (testFilter) {
+            params.set('testFilter', testFilter);
+        }
+        if (dataFilter) {
+            params.set('dataFilter', dataFilter);
+        }
+        if (anchorTestName) {
+            params.set('anchor', anchorTestName);
+        }
+
+        return params;
+    }
+
+    function updateURLFromState(anchorTestName) {
+        const params = captureState(anchorTestName);
+        const newHash = params.toString();
+        if (history.replaceState) {
+            history.replaceState(null, '', newHash ? `#${newHash}` : window.location.pathname + window.location.search);
+        } else {
+            window.location.hash = newHash;
+        }
+    }
+
+    function applyStateFromURL() {
+        if (!window.location.hash) {
+            return null;
+        }
+
+        const params = new URLSearchParams(window.location.hash.substring(1));
+
+        const view = params.get('view');
+        if (view && comparisonSchemes[view]) {
+            viewModeSelector.value = view;
+        }
+
+        const outlier = params.get('outlier');
+        if (outlier) {
+            outlierCheckbox.checked = outlier === 'true';
+        }
+
+        const testFilter = params.get('testFilter');
+        if (testFilter) {
+            testFilterInput.value = testFilter;
+        }
+
+        const dataFilter = params.get('dataFilter');
+        if (dataFilter) {
+            dataFilterInput.value = dataFilter;
+        }
+
+        return params.get('anchor');
+    }
 
     function shortVersion(xemu_version) {
         {#  xemu-0.8.92-master-<githash> #}
@@ -106,6 +170,31 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         return xemu_version;
+    }
+
+    function buildChartButtons(onExpand, onShare) {
+        const buttonsContainer = document.createElement("div");
+        buttonsContainer.className = "chart-buttons-container";
+
+        const expandButton = document.createElement("button");
+        expandButton.textContent = "Expand";
+        expandButton.className = "expand-button";
+        buttonsContainer.appendChild(expandButton);
+
+        const shareButton = document.createElement("button");
+        shareButton.textContent = "Share";
+        shareButton.className = "share-button";
+        buttonsContainer.appendChild(shareButton);
+
+        expandButton.addEventListener("click", (event) => {
+            onExpand(event, expandButton)
+        });
+
+        shareButton.addEventListener("click", (event) => {
+            onShare(event, shareButton)
+        });
+
+        return buttonsContainer;
     }
 
     function renderSummaryChart(scheme, processedData) {
@@ -162,17 +251,31 @@ document.addEventListener("DOMContentLoaded", function () {
         };
         Plotly.newPlot(summaryChartDiv, [trace], layout, responsiveChartConfig);
 
-        const expandButton = document.createElement("button");
-        expandButton.textContent = "Expand";
-        expandButton.className = "expand-button";
-        summaryChartDiv.appendChild(expandButton);
+        const buttonsContainer = buildChartButtons(
+            (_event, _expandButton) => {
+                const fullscreenLayout = JSON.parse(JSON.stringify(layout));
+                fullscreenLayout.title.font = {size: 24};
+                fullscreenOverlay.style.display = "block";
+                Plotly.newPlot(fullscreenChartDiv, [trace], fullscreenLayout, {responsive: true});
+            },
+            (event, shareButton) => {
+                event.stopPropagation();
 
-        expandButton.addEventListener("click", () => {
-            const fullscreenLayout = JSON.parse(JSON.stringify(layout));
-            fullscreenLayout.title.font = {size: 24};
-            fullscreenOverlay.style.display = "block";
-            Plotly.newPlot(fullscreenChartDiv, [trace], fullscreenLayout, {responsive: true});
-        });
+                const params = captureState("summary-chart");
+                const shareableUrl = `${window.location.origin}${window.location.pathname}#${params.toString()}`;
+
+                navigator.clipboard.writeText(shareableUrl).then(() => {
+                    shareButton.textContent = "Copied!";
+                    shareButton.classList.add("copied");
+                    setTimeout(() => {
+                        shareButton.textContent = "Share";
+                        shareButton.classList.remove("copied");
+                    }, 2000);
+                });
+            }
+        );
+
+        summaryChartDiv.appendChild(buttonsContainer);
     }
 
     function symbolForRendererBackend(renderer_backend) {
@@ -397,19 +500,33 @@ document.addEventListener("DOMContentLoaded", function () {
 
             Plotly.newPlot(chartDiv, traces, layout, responsiveChartConfig);
 
-            const expandButton = document.createElement("button");
-            expandButton.textContent = "Expand";
-            expandButton.className = "expand-button";
-            chartDiv.appendChild(expandButton);
+            const buttonsContainer = buildChartButtons(
+                (_event, _expandButton) => {
+                    const fullscreenLayout = JSON.parse(JSON.stringify(layout));
+                    if (fullscreenLayout.title) {
+                        fullscreenLayout.title.font = {size: 24};
+                    }
+                    fullscreenOverlay.style.display = "block";
+                    Plotly.newPlot(fullscreenChartDiv, traces, fullscreenLayout, {responsive: true});
+                },
+                (event, shareButton) => {
+                    event.stopPropagation();
 
-            expandButton.addEventListener("click", () => {
-                const fullscreenLayout = JSON.parse(JSON.stringify(layout));
-                if (fullscreenLayout.title) {
-                    fullscreenLayout.title.font = {size: 24};
+                    const params = captureState(testName);
+                    const shareableUrl = `${window.location.origin}${window.location.pathname}#${params.toString()}`;
+
+                    navigator.clipboard.writeText(shareableUrl).then(() => {
+                        shareButton.textContent = "Copied";
+                        shareButton.classList.add("copied");
+                        setTimeout(() => {
+                            shareButton.textContent = "Share";
+                            shareButton.classList.remove("copied");
+                        }, 2000);
+                    });
                 }
-                fullscreenOverlay.style.display = "block";
-                Plotly.newPlot(fullscreenChartDiv, traces, fullscreenLayout, {responsive: true});
-            });
+            );
+
+            chartDiv.appendChild(buttonsContainer);
 
             chartDiv.on("plotly_click", function (eventData) {
                 onPointClick(chartDiv, eventData.points, selectedSchemeKey, scheme, testData);
@@ -419,7 +536,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function renderAllCharts() {
         const excludeOutliers = outlierCheckbox.checked;
-        const selectedSchemeKey = selector.value;
+        const selectedSchemeKey = viewModeSelector.value;
         const scheme = comparisonSchemes[selectedSchemeKey];
         const testFilterText = testFilterInput.value.toLowerCase().trim();
         const dataFilterText = dataFilterInput.value.toLowerCase().trim();
@@ -555,6 +672,8 @@ document.addEventListener("DOMContentLoaded", function () {
             anchorTestName = allCurrentCharts[allCurrentCharts.length - 1].dataset.testName;
         }
 
+        updateURLFromState(anchorTestName);
+
         renderAllCharts();
 
         requestAnimationFrame(() => {
@@ -587,7 +706,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }, kDebounceTimeoutMilliseconds);
     }
 
-    selector.addEventListener("change", handleFilterChange);
+    viewModeSelector.addEventListener("change", handleFilterChange);
     outlierCheckbox.addEventListener("change", handleFilterChange);
     testFilterInput.addEventListener("input", handleDebouncedChange);
     dataFilterInput.addEventListener("input", () => {
@@ -599,5 +718,16 @@ document.addEventListener("DOMContentLoaded", function () {
         suggestionsOverlay.style.display = "none";
     });
 
+    const initialAnchor = applyStateFromURL();
+
     renderAllCharts();
+
+    if (initialAnchor) {
+        setTimeout(() => {
+            const targetChart = document.querySelector(`[data-test-name="${initialAnchor}"]`);
+            if (targetChart) {
+                targetChart.scrollIntoView({behavior: 'auto', block: 'start'});
+            }
+        }, 100);
+    }
 });
