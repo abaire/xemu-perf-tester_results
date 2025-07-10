@@ -1,3 +1,16 @@
+const kPalette = [
+    "#0C7BDC",
+    "#E66100",
+    "#009E73",
+    "#CC79A7",
+    "#56B4E9",
+    "#9A6324",
+    "#882255",
+    "#F0E442",
+    "#469990",
+    "#D55E00",
+]
+
 const kTooltipConfig = {
     align: "left",
     font: {
@@ -9,11 +22,12 @@ const kTooltipConfig = {
 const kCommonXAxisConfig = {
     automargin: true,
     tickangle: -25,
-    categoryorder: "category ascending"
+    categoryorder: "category ascending",
+    zeroline: false
 };
 
 const kCommonMarkerConfig = {
-    size: 10
+    size: 12
 };
 
 const kSearchableDataFields = [
@@ -56,6 +70,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const chartsContainer = document.getElementById("charts-container");
     const viewModeSelector = document.getElementById("slice-selector");
     const outlierCheckbox = document.getElementById("outlier-checkbox");
+    const showErrorBarsCheckbox = document.getElementById("error-bars-checkbox");
 
     const fullscreenOverlay = document.getElementById("fullscreen-overlay");
     const fullscreenChartDiv = document.getElementById("fullscreen-chart");
@@ -106,22 +121,30 @@ document.addEventListener("DOMContentLoaded", function () {
     function captureState(anchorTestName) {
         const params = new URLSearchParams();
 
-        const outlier = outlierCheckbox.checked;
-        const testFilter = testFilterInput.value;
-        const dataFilter = dataFilterInput.value;
+        params.set("view", viewModeSelector.value);
 
-        params.set('view', viewModeSelector.value);
+        const outlier = outlierCheckbox.checked;
         if (outlier) {
-            params.set('outlier', outlier);
+            params.set("outlier", outlier);
         }
+
+        const showErrorBars = showErrorBarsCheckbox.checked;
+        if (showErrorBars) {
+            params.set("showErrorBars", showErrorBars);
+        }
+
+        const testFilter = testFilterInput.value;
         if (testFilter) {
-            params.set('testFilter', testFilter);
+            params.set("testFilter", testFilter);
         }
+
+        const dataFilter = dataFilterInput.value;
         if (dataFilter) {
-            params.set('dataFilter', dataFilter);
+            params.set("dataFilter", dataFilter);
         }
+
         if (anchorTestName) {
-            params.set('anchor', anchorTestName);
+            params.set("anchor", anchorTestName);
         }
 
         return params;
@@ -131,7 +154,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const params = captureState(anchorTestName);
         const newHash = params.toString();
         if (history.replaceState) {
-            history.replaceState(null, '', newHash ? `#${newHash}` : window.location.pathname + window.location.search);
+            history.replaceState(null, "", newHash ? `#${newHash}` : window.location.pathname + window.location.search);
         } else {
             window.location.hash = newHash;
         }
@@ -144,27 +167,32 @@ document.addEventListener("DOMContentLoaded", function () {
 
         const params = new URLSearchParams(window.location.hash.substring(1));
 
-        const view = params.get('view');
+        const view = params.get("view");
         if (view && comparisonSchemes[view]) {
             viewModeSelector.value = view;
         }
 
-        const outlier = params.get('outlier');
+        const outlier = params.get("outlier");
         if (outlier) {
-            outlierCheckbox.checked = outlier === 'true';
+            outlierCheckbox.checked = outlier === "true";
         }
 
-        const testFilter = params.get('testFilter');
+        const showErrorBars = params.get("showErrorBars");
+        if (showErrorBars) {
+            showErrorBarsCheckbox.checked = showErrorBars === "true";
+        }
+
+        const testFilter = params.get("testFilter");
         if (testFilter) {
             testFilterInput.value = testFilter;
         }
 
-        const dataFilter = params.get('dataFilter');
+        const dataFilter = params.get("dataFilter");
         if (dataFilter) {
             dataFilterInput.value = dataFilter;
         }
 
-        return params.get('anchor');
+        return params.get("anchor");
     }
 
     function shortVersion(xemu_version) {
@@ -288,7 +316,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         if (renderer_backend === "VK") {
-            return "star-open-dot";
+            return "star";
         }
 
         return "x";
@@ -371,7 +399,9 @@ document.addEventListener("DOMContentLoaded", function () {
             d.machine_id,
             d.machine_id_with_renderer,
             d.iso,
-            d.cpu_freq_max
+            d.cpu_freq_max,
+            isNaN(d.adjusted_min_ms) ? "??" : d.adjusted_min_ms,
+            isNaN(d.adjusted_max_ms) ? "No range data" : d.adjusted_max_ms
         ]);
     }
 
@@ -382,11 +412,48 @@ document.addEventListener("DOMContentLoaded", function () {
             "CPU     %{customdata[2]} [%{customdata[8]}]<br>" +
             "GPU     %{customdata[3]}<br>" +
             "Backend %{customdata[4]}<br>" +
+            "%{customdata[9]} - %{customdata[10]}<br>" +
             "%{customdata[7]}<br>" +
+            "%{customdata[5]}<br>" +
             "<extra></extra>"
     }
 
-    function renderTestResultCharts(selectedSchemeKey, scheme, processedData, filterText) {
+    function buildTrace(data, name, color) {
+        return {
+            type: "scatter",
+            mode: "markers",
+            name: name,
+            marker: {
+                ...kCommonMarkerConfig,
+                symbol: data.map(d => symbolForRendererBackend(d.renderer)),
+                color: color
+            },
+            x: data.map(d => d.jitteredX),
+            y: data.map(d => d.average_ms),
+            customdata: buildCustomData(data),
+            hovertemplate: buildHoverTemplate()
+        };
+    }
+
+    function buildErrorBars(data, name, color) {
+        return {
+            type: "scatter",
+            mode: "none",
+            name: name,
+            x: data.map(d => d.jitteredX),
+            y: data.map(d => d.average_ms),
+            opacity: 0.5,
+            error_y: {
+                type: "data",
+                symmetric: false,
+                array: data.map(d => d.error_plus_ms),
+                arrayminus: data.map(d => d.error_minus_ms),
+                color: color
+            }
+        };
+    }
+
+    function renderTestResultCharts(selectedSchemeKey, scheme, processedData, filterText, showErrorBars) {
         const testsByName = filteredTestsByName(processedData, filterText)
 
         for (const testName in testsByName) {
@@ -422,58 +489,37 @@ document.addEventListener("DOMContentLoaded", function () {
                 categoryIndexCounter[category] = currentIndex + 1;
             });
 
-            let traces;
-            let layout;
-
+            const traces = [];
             if (selectedSchemeKey === "by-version") {
-                traces = []
                 const machines = testData.reduce((acc, d) => {
                     (acc[d.machine_id] = acc[d.machine_id] || []).push(d);
                     return acc;
                 }, {});
 
-                for (const machineId in machines) {
-                    const machineData = machines[machineId];
-                    traces.push({
-                        type: "scatter",
-                        mode: "markers",
-                        name: machineId,
-                        marker: {
-                            ...kCommonMarkerConfig,
-                            symbol: machineData.map(d => symbolForRendererBackend(d.renderer))
-                        },
-                        x: machineData.map(d => d.jitteredX),
-                        y: machineData.map(d => d.average_ms),
-                        customdata: buildCustomData(machineData),
-                        hovertemplate: buildHoverTemplate()
-                    });
-                }
+                Object.entries(machines).forEach(([machineId, machineData], index) => {
+                    const color = kPalette[index % kPalette.length];
+                    if (showErrorBars) {
+                        traces.push(buildErrorBars(machineData, machineId, color))
+                    }
+                    traces.push(buildTrace(machineData, machineId, color));
+                });
             } else {
-                traces = [];
                 const versions = testData.reduce((acc, d) => {
                     (acc[d.xemu_version] = acc[d.xemu_version] || []).push(d);
                     return acc;
                 }, {});
 
-                for (const version in versions) {
-                    const versionData = versions[version];
-                    traces.push({
-                        type: "scatter",
-                        mode: "markers",
-                        name: shortVersion(version),
-                        marker: {
-                            ...kCommonMarkerConfig,
-                            symbol: versionData.map(d => symbolForRendererBackend(d.renderer))
-                        },
-                        x: machineData.map(d => d.jitteredX),
-                        y: versionData.map(d => d.average_ms),
-                        customdata: buildCustomData(versionData),
-                        hovertemplate: buildHoverTemplate()
-                    });
-                }
+                Object.entries(versions).forEach(([version, versionData], index) => {
+                    const color = kPalette[index % kPalette.length];
+                    const name = shortVersion(version);
+                    if (showErrorBars) {
+                        traces.push(buildErrorBars(versionData, name, color))
+                    }
+                    traces.push(buildTrace(versionData, name, color));
+                });
             }
 
-            layout = {
+            const layout = {
                 title: styleTitle(`${testName} by ${scheme.title}`),
                 xaxis: {
                     ...kCommonXAxisConfig,
@@ -522,8 +568,50 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+    function processData(rawData, excludeMaxOutlier) {
+        return rawData.map(d => {
+            let average_us = d.average_us;
+            let max_us = d.max_us;
+            let min_us = d.min_us;
+
+            if (excludeMaxOutlier) {
+                average_us = (d.total_us - d.max_us) / (d.iterations - 1);
+                max_us = d.inner_max_us;
+            }
+
+            let error_plus_us;
+            let error_minus_us;
+            let adjusted_max_ms;
+            let adjusted_min_ms;
+            if (isNaN(max_us) || isNaN(min_us)) {
+                error_plus_us = 0;
+                error_minus_us = 0;
+                adjusted_max_ms = NaN;
+                adjusted_min_ms = NaN;
+            } else {
+                error_plus_us = max_us - average_us;
+                error_minus_us = average_us - min_us;
+                adjusted_max_ms = max_us / 1000.0;
+                adjusted_min_ms = min_us / 1000.0;
+            }
+
+            return {
+                ...d,
+                average_us: average_us,
+                average_ms: average_us / 1000.0,
+                error_plus_us: error_plus_us,
+                error_minus_us: error_minus_us,
+                error_plus_ms: error_plus_us / 1000.0,
+                error_minus_ms: error_minus_us / 1000.0,
+                adjusted_max_ms: adjusted_max_ms,
+                adjusted_min_ms: adjusted_min_ms
+            };
+        });
+    }
+
     function renderAllCharts() {
         const excludeOutliers = outlierCheckbox.checked;
+        const showErrorBars = showErrorBarsCheckbox.checked;
         const selectedSchemeKey = viewModeSelector.value;
         const scheme = comparisonSchemes[selectedSchemeKey];
         const testFilterText = testFilterInput.value.toLowerCase().trim();
@@ -554,25 +642,11 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        const processedData = filteredRawData.map(d => {
-            if (excludeOutliers && d.iterations > 1) {
-                const newAverage = (d.total_us - d.max_us) / (d.iterations - 1);
-                return {
-                    ...d,
-                    average_us: newAverage,
-                    average_ms: newAverage / 1000.0
-                };
-            }
-            return {
-                ...d,
-                average_ms: d.average_us / 1000.0
-            };
-        });
-
+        const processedData = processData(filteredRawData, excludeOutliers);
         if (!testFilterText && !dataFilterText) {
             renderSummaryChart(scheme, processedData);
         }
-        renderTestResultCharts(selectedSchemeKey, scheme, processedData, testFilterText);
+        renderTestResultCharts(selectedSchemeKey, scheme, processedData, testFilterText, showErrorBars);
     }
 
     function highlightMatch(fullText, filterText) {
@@ -696,6 +770,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     viewModeSelector.addEventListener("change", handleFilterChange);
     outlierCheckbox.addEventListener("change", handleFilterChange);
+    showErrorBarsCheckbox.addEventListener("change", handleFilterChange);
     testFilterInput.addEventListener("input", handleDebouncedChange);
     dataFilterInput.addEventListener("input", () => {
         updateFilterSuggestions();
@@ -714,7 +789,7 @@ document.addEventListener("DOMContentLoaded", function () {
         setTimeout(() => {
             const targetChart = document.querySelector(`[data-test-name="${initialAnchor}"]`);
             if (targetChart) {
-                targetChart.scrollIntoView({behavior: 'auto', block: 'start'});
+                targetChart.scrollIntoView({behavior: "auto", block: "start"});
             }
         }, 100);
     }
