@@ -32,27 +32,32 @@ class FlatResults:
         for result in flat_results:
             machine_info = result["machine_info"]
             for test_result in result.get("results", []):
-                self.flattened_results.append(
-                    {
-                        "suite": test_result["name"].split("::")[0] if "::" in test_result["name"] else "N/A",
-                        "test_name": test_result["name"],
-                        "average_us": test_result["average_us"],
-                        "total_us": test_result["total_us"],
-                        "max_us": test_result["max_us"],
-                        "min_us": test_result["min_us"],
-                        "iterations": test_result["iterations"],
-                        "xemu_version": result["xemu_version"],
-                        "renderer": result["renderer"],
-                        "iso": result["iso"],
-                        "os_system": machine_info["os_system"],
-                        "cpu_manufacturer": machine_info["cpu_manufacturer"],
-                        "cpu_freq_max": machine_info["cpu_freq_max"],
-                        "gpu_vendor": result["gpu_vendor"],
-                        "gpu_renderer": _patch_gpu_renderer(result["gpu_renderer"], machine_info["cpu_manufacturer"]),
-                        "machine_id": result["machine_id"],
-                        "machine_id_with_renderer": result["machine_id_with_renderer"],
-                    }
-                )
+                flattened = {
+                    "suite": test_result["name"].split("::")[0] if "::" in test_result["name"] else "N/A",
+                    "test_name": test_result["name"],
+                    "average_us": test_result["average_us"],
+                    "total_us": test_result["total_us"],
+                    "max_us": test_result["max_us"],
+                    "min_us": test_result["min_us"],
+                    "iterations": test_result["iterations"],
+                    "xemu_version": result["xemu_version"],
+                    "renderer": result["renderer"],
+                    "iso": result["iso"],
+                    "os_system": machine_info["os_system"],
+                    "cpu_manufacturer": machine_info["cpu_manufacturer"],
+                    "cpu_freq_max": machine_info["cpu_freq_max"],
+                    "gpu_vendor": result["gpu_vendor"],
+                    "gpu_renderer": _patch_gpu_renderer(result["gpu_renderer"], machine_info["cpu_manufacturer"]),
+                    "machine_id": result["machine_id"],
+                    "machine_id_with_renderer": result["machine_id_with_renderer"],
+                }
+
+                raw_results = sorted(test_result.get("raw_results", []))
+                if raw_results and len(raw_results) > 3:
+                    flattened["inner_max_us"] = raw_results[-2]
+                    flattened["inner_min_us"] = raw_results[1]
+
+                self.flattened_results.append(flattened)
 
     def render(self, output_dir: str, html_file_name: str):
         env = _get_jinja2_env()
