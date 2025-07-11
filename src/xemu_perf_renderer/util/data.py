@@ -23,7 +23,7 @@ class FlatResults:
                 average_us = test_result["average_us"]
                 average_excluding_max = (total_us - max_us) / (iterations - 1) if iterations > 1 else average_us
 
-                xemu_tag: str = result.get("xemu_tag")
+                xemu_tag: str = result.get("xemu_tag", "")
                 if xemu_tag:
                     xemu_tag = xemu_tag.removeprefix("https://github.com/")
 
