@@ -67,8 +67,8 @@ class XemuVersion:
             "patch": self.patch,
             "build": self.build,
             "branch": self.branch,
-            "hash": self.git_hash,
-            "type": str(self.type),
+            "git_hash": self.git_hash,
+            "build_type": str(self.type),
             "short": self.short_name,
             "compare": self.compare_name,
         }

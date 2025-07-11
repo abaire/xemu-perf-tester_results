@@ -2,56 +2,30 @@ import {expandData} from "./data.js";
 import {initializeApp} from "./app.js";
 
 
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", async function () {
     const loadingContainer = document.getElementById("loading-container");
-    const progressBar = document.getElementById("progress-bar");
-    const progressText = document.getElementById("progress-text");
     const chartsContainer = document.getElementById("charts-container");
 
-    fetch("{{ results_filename }}")
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
+    function displayError(error) {
+        console.error('Failed to load performance data:', error);
+        loadingContainer.innerHTML = '<p style="color: red;">Error: Could not load data.</p>';
+    }
 
-            const contentLength = +response.headers.get("Content-Length");
-            let receivedLength = 0;
-            const reader = response.body.getReader();
+     try {
+        const response = await fetch("{{ results_filename }}");
+        if (!response.ok) {
+            displayError(`Data load failed: HTTP ${response.status}`)
+            return;
+        }
 
-            const stream = new ReadableStream({
-                start(controller) {
-                    function push() {
-                        reader.read().then(({done, value}) => {
-                            if (done) {
-                                controller.close();
-                                return;
-                            }
-                            receivedLength += value.length;
-                            const percent = Math.round((receivedLength / contentLength) * 100);
+        const data = expandData(await response.json());
 
-                            progressBar.style.width = `${percent}%`;
-                            progressText.textContent = `${percent}%`;
+        loadingContainer.style.display = 'none';
+        chartsContainer.style.display = 'block';
 
-                            controller.enqueue(value);
-                            push();
-                        });
-                    }
-
-                    push();
-                }
-            });
-
-            return new Response(stream);
-        })
-        .then(response => response.json())
-        .then(data => {
-            loadingContainer.style.display = "none";
-            chartsContainer.style.display = "block";
-            initializeApp(expandData(data));
-        })
-        .catch(error => {
-            console.error("Failed to load results data:", error);
-            loadingContainer.innerHTML = '<p style="color: red;">Error: Could not load results data.</p>';
-        });
+        initializeApp(data);
+    } catch (error) {
+        displayError(error);
+    }
 });
 
