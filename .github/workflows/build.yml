@@ -65,6 +65,30 @@ jobs:
             exit 1
           fi
 
+  check-javascript:
+    name: Check JS files
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Biome
+        uses: biomejs/setup-biome@v2
+        with:
+          version: "latest"
+
+      - name: Look for disallowed methods
+        run: |
+          if grep "console.log" src/xemu_perf_renderer/templates/*; then
+            exit 1
+          fi
+          if grep "console.time" src/xemu_perf_renderer/templates/*; then
+            exit 1
+          fi
+
+      - name: Run Biome CI check
+        run: biome ci src/xemu_perf_renderer/templates
+
   build-site:
     name: Regenerate the results site
     runs-on: ubuntu-latest
