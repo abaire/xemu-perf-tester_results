@@ -112,10 +112,16 @@ class FlatResultsRenderer(FlatResults):
         with open(os.path.join(output_dir, "style.css"), "w", encoding="utf-8") as f:
             f.write(css_template.render(template_context))
 
-        for js_file in ("script", "app", "data", "xemu_version"):
-            js_template = env.get_template(f"{js_file}.js.jinja2")
-            with open(os.path.join(output_dir, f"{js_file}.js"), "w", encoding="utf-8") as f:
+        for js_template_file in ("script",):
+            js_template = env.get_template(f"{js_template_file}.js.jinja2")
+            with open(os.path.join(output_dir, f"{js_template_file}.js"), "w", encoding="utf-8") as f:
                 f.write(js_template.render(template_context))
+
+        # TODO: Just copy the files directly instead of nop rendering.
+        for js_file in ("app", "data", "xemu_version"):
+            js_template = env.get_template(f"{js_file}.js")
+            with open(os.path.join(output_dir, f"{js_file}.js"), "w", encoding="utf-8") as f:
+                f.write(js_template.render({}))
 
         logger.debug("Generated HTML report into '%s'", output_dir)
 

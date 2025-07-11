@@ -72,7 +72,8 @@ If you do not use Visual Studio:
 
 ### Maintenance setup
 
-The tools in this repository may be updated from time to time, so it is a good idea to 
+The tools in this repository may be updated from time to time, so it is a good
+idea to
 [sync your fork](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/syncing-a-fork)
 regularly.
 
@@ -118,8 +119,8 @@ run.bat --xemu-tag <release>
 - the URL of a pull request (PR) (e.g.,
   `https://github.com/xemu-project/xemu/pull/2329`).
 
-The action and PR options additionally require you to pass a 
-[GitHub personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-fine-grained-personal-access-token) 
+The action and PR options additionally require you to pass a
+[GitHub personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-fine-grained-personal-access-token)
 using the `--github-token` argument. See `--help` for details.
 
 #### Running with a development / PR build
@@ -207,3 +208,16 @@ XEMU_DYLD_FALLBACK_LIBRARY_PATH=<path_to_xemu_repo>/dist/xemu.app/Contents/Libra
    create a pull request to submit your results.
 1. [Create a pull request (PR)](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request-from-a-fork)
    to add them to the primary repository.
+
+# Development
+
+## Python
+
+This project uses [hatch](https://pypi.org/project/hatch/) to perform formatting
+and type checking. You will probably need to install it locally to pass the CI
+checks.
+
+## Javascript
+
+This project uses [Biome](https://biomejs.dev/) to lint and format javascript
+files. You will probably need to install it locally to pass the CI checks.
