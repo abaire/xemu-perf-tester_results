@@ -21,18 +21,23 @@ class FlatResults:
                 max_us = test_result["max_us"]
                 total_us = test_result["total_us"]
                 average_us = test_result["average_us"]
-                average_excluiding_max = (total_us - max_us) / (iterations - 1) if iterations > 1 else average_us
+                average_excluding_max = (total_us - max_us) / (iterations - 1) if iterations > 1 else average_us
+
+                xemu_tag: str = result.get("xemu_tag")
+                if xemu_tag:
+                    xemu_tag = xemu_tag.removeprefix("https://github.com/")
 
                 flattened = {
                     "suite": test_result["name"].split("::")[0] if "::" in test_result["name"] else "N/A",
                     "test_name": test_result["name"],
                     "average_us": average_us,
-                    "average_us_exmax": average_excluiding_max,
+                    "average_us_exmax": average_excluding_max,
                     "total_us": total_us,
                     "max_us": max_us,
                     "min_us": test_result["min_us"],
                     "iterations": iterations,
                     "xemu_version": result["xemu_version"],
+                    "xemu_tag": xemu_tag,
                     "renderer": result["renderer"],
                     "iso": result["iso"],
                     "os_system": machine_info["os_system"],
