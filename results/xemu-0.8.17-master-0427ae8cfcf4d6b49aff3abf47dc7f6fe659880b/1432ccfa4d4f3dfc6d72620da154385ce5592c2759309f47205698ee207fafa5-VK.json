@@ -1,0 +1,190 @@
+{
+  "iso": "xemu-perf-tests-v2025-07-09_18-34-59-855206728.iso",
+  "suite_allowlist": null,
+  "xemu_version": "xemu-0.8.17-master-0427ae8cfcf4d6b49aff3abf47dc7f6fe659880b",
+  "xemu_machine_info": "xemu_version: 0.8.17\nxemu_branch: master\nxemu_commit: 0427ae8cfcf4d6b49aff3abf47dc7f6fe659880b\nxemu_date: Sat Feb 15 22:04:19 UTC 2025\nCPU: AMD Ryzen 7 5800X 8-Core Processor             \nOS_Version:  22H2\nGL_VENDOR: NVIDIA Corporation\nGL_RENDERER: NVIDIA GeForce RTX 3080/PCIe/SSE2\nGL_VERSION: 4.0.0 NVIDIA 576.88\nGL_SHADING_LANGUAGE_VERSION: 4.00 NVIDIA via Cg compiler\n         Automatically detecting the format is dangerous for raw images, write operations on block 0 will be restricted.\n         Specify the 'raw' format explicitly to remove the restrictions.\nEnabled instance extensions:\n- VK_KHR_surface\n- VK_KHR_win32_surface\n- VK_KHR_get_physical_device_properties2\n- VK_KHR_external_semaphore_capabilities\n- VK_KHR_external_memory_capabilities\nAvailable physical devices:\n- NVIDIA GeForce RTX 3080\nSelected physical device: NVIDIA GeForce RTX 3080\n- Vendor: 10de, Device: 2206\n- Driver Version: 576.352.0\nEnabled device extensions:\n- VK_KHR_external_semaphore\n- VK_KHR_external_memory\n- VK_KHR_external_memory_win32\n- VK_KHR_external_semaphore_win32\n- VK_EXT_custom_border_color\n- VK_EXT_provoking_vertex\n- VK_EXT_memory_budget\n",
+  "machine_info": {
+    "cpu_manufacturer": "AMD Ryzen 7 5800X 8-Core Processor",
+    "cpu_vendor_id": "AuthenticAMD",
+    "cpu_stepping": "N/A",
+    "cpu_model": 33,
+    "cpu_family": 25,
+    "cpu_cores": 8,
+    "hw_threads": 16,
+    "os_system": "Windows",
+    "os_release": "10",
+    "os_version": "10.0.19045",
+    "os_machine_type": "AMD64",
+    "cpu_freq_max": 3801.0,
+    "os_win_edition": "Education",
+    "os_win_version": [
+      "10",
+      "10.0.19045",
+      "SP0",
+      "Multiprocessor Free"
+    ]
+  },
+  "renderer": "VK",
+  "results": [
+    {
+      "name": "Vertex buffer allocation::MixedVtxAlloc-arrays",
+      "iterations": 10,
+      "total_us": 1110008,
+      "average_us": 111000,
+      "min_us": 100205,
+      "max_us": 117459,
+      "raw_results": [
+        100205,
+        111110,
+        111470,
+        109959,
+        110065,
+        111042,
+        113338,
+        112982,
+        112378,
+        117459
+      ]
+    },
+    {
+      "name": "Vertex buffer allocation::MixedVtxAlloc-inlinearrays",
+      "iterations": 10,
+      "total_us": 1557068,
+      "average_us": 155706,
+      "min_us": 152070,
+      "max_us": 165439,
+      "raw_results": [
+        165439,
+        153786,
+        152070,
+        152271,
+        159573,
+        154986,
+        153538,
+        152419,
+        157842,
+        155144
+      ]
+    },
+    {
+      "name": "Vertex buffer allocation::MixedVtxAlloc-inlinebuffers",
+      "iterations": 10,
+      "total_us": 5878168,
+      "average_us": 587816,
+      "min_us": 572642,
+      "max_us": 610125,
+      "raw_results": [
+        610125,
+        598353,
+        585856,
+        592318,
+        588762,
+        598568,
+        572642,
+        584534,
+        573161,
+        573849
+      ]
+    },
+    {
+      "name": "Vertex buffer allocation::MixedVtxAlloc-inlineelements",
+      "iterations": 10,
+      "total_us": 1176444,
+      "average_us": 117644,
+      "min_us": 113814,
+      "max_us": 122116,
+      "raw_results": [
+        120086,
+        118789,
+        118253,
+        116514,
+        115717,
+        117260,
+        122116,
+        117228,
+        113814,
+        116667
+      ]
+    },
+    {
+      "name": "Vertex buffer allocation::TinyAlloc-arrays",
+      "iterations": 10,
+      "total_us": 1415238,
+      "average_us": 141523,
+      "min_us": 106151,
+      "max_us": 247526,
+      "raw_results": [
+        247526,
+        190785,
+        146705,
+        125575,
+        121475,
+        128835,
+        118520,
+        106151,
+        116347,
+        113319
+      ]
+    },
+    {
+      "name": "Vertex buffer allocation::TinyAlloc-inlinearrays",
+      "iterations": 10,
+      "total_us": 1261679,
+      "average_us": 126167,
+      "min_us": 120574,
+      "max_us": 133638,
+      "raw_results": [
+        122805,
+        130407,
+        133638,
+        125423,
+        130529,
+        128001,
+        123525,
+        125907,
+        120870,
+        120574
+      ]
+    },
+    {
+      "name": "Vertex buffer allocation::TinyAlloc-inlinebuffers",
+      "iterations": 10,
+      "total_us": 1360521,
+      "average_us": 136052,
+      "min_us": 131399,
+      "max_us": 141513,
+      "raw_results": [
+        131511,
+        137649,
+        140373,
+        137452,
+        133593,
+        131399,
+        136500,
+        135390,
+        141513,
+        135141
+      ]
+    },
+    {
+      "name": "Vertex buffer allocation::TinyAlloc-inlineelements",
+      "iterations": 10,
+      "total_us": 1151272,
+      "average_us": 115127,
+      "min_us": 104252,
+      "max_us": 131317,
+      "raw_results": [
+        116091,
+        131317,
+        123109,
+        113544,
+        109762,
+        112019,
+        114382,
+        104252,
+        114328,
+        112468
+      ]
+    }
+  ]
+}
