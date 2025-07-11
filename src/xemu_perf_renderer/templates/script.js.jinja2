@@ -7,21 +7,35 @@ document.addEventListener("DOMContentLoaded", async function () {
     const chartsContainer = document.getElementById("charts-container");
 
     function displayError(error) {
-        console.error('Failed to load performance data:', error);
+        console.error("Failed to load performance data:", error);
         loadingContainer.innerHTML = '<p style="color: red;">Error: Could not load data.</p>';
     }
 
-     try {
+    try {
         const response = await fetch("{{ results_filename }}");
         if (!response.ok) {
             displayError(`Data load failed: HTTP ${response.status}`)
             return;
         }
 
-        const data = expandData(await response.json());
+        const contentEncoding = response.headers.get("Content-Encoding");
+        const contentType = response.headers.get("Content-Type");
 
-        loadingContainer.style.display = 'none';
-        chartsContainer.style.display = 'block';
+        const likelyCompressed = contentType.includes("gzip") || contentType.includes("x-gzip") || response.url.endsWith(".gz");
+
+        let data;
+        if (contentEncoding === "gzip" || !likelyCompressed) {
+            data = await response.json();
+        } else {
+            const compressedData = await response.arrayBuffer();
+            const decompressedData = pako.inflate(compressedData, {to: "string"});
+            data = JSON.parse(decompressedData);
+        }
+
+        data = expandData(data);
+
+        loadingContainer.style.display = "none";
+        chartsContainer.style.display = "block";
 
         initializeApp(data);
     } catch (error) {
