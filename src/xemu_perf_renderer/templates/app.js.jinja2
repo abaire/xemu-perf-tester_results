@@ -150,31 +150,6 @@ function createDataFilterChip(text) {
     chipArea.appendChild(chip);
 }
 
-function buildChartButtons(onExpand, onShare) {
-    const buttonsContainer = document.createElement("div");
-    buttonsContainer.className = "chart-buttons-container";
-
-    const expandButton = document.createElement("button");
-    expandButton.textContent = "Expand";
-    expandButton.className = "expand-button";
-    buttonsContainer.appendChild(expandButton);
-
-    const shareButton = document.createElement("button");
-    shareButton.textContent = "Share";
-    shareButton.className = "share-button";
-    buttonsContainer.appendChild(shareButton);
-
-    expandButton.addEventListener("click", (event) => {
-        onExpand(event, expandButton)
-    });
-
-    shareButton.addEventListener("click", (event) => {
-        onShare(event, shareButton)
-    });
-
-    return buttonsContainer;
-}
-
 function onPointClick(chart, points, selectedSchemeKey, scheme, testData, categoryMap) {
     if (!points.length) {
         return;
@@ -263,67 +238,6 @@ function updateVisibleTicks(chartDiv) {
     }).then(() => {
         chartDiv.isUpdatingTicks = false;
     });
-}
-
-/** Adds additional elements to a chart container (e.g., expand/share buttons). */
-function augmentChart(chartDiv, chartData) {
-    const {
-        layout,
-        traces,
-        testName,
-        onPointClickArgs,
-        dynamicTicks
-    } = chartData;
-
-    const buttonsContainer = buildChartButtons(
-        (_event, _expandButton) => {
-            const fullscreenLayout = JSON.parse(JSON.stringify(layout));
-            if (fullscreenLayout.title) {
-                fullscreenLayout.title.font = {size: 24};
-            }
-            fullscreenOverlay.style.display = "block";
-            Plotly.newPlot(fullscreenChartDiv, traces, fullscreenLayout, {responsive: true});
-        },
-
-        (event, shareButton) => {
-            event.stopPropagation();
-            const params = captureState(testName);
-            const shareableUrl = `${window.location.origin}${window.location.pathname}#${params.toString()}`;
-            navigator.clipboard.writeText(shareableUrl).then(() => {
-                shareButton.textContent = "Copied!";
-                shareButton.classList.add("copied");
-                setTimeout(() => {
-                    shareButton.textContent = "Share";
-                    shareButton.classList.remove("copied");
-                }, 2000);
-            });
-        }
-    );
-
-    chartDiv.parentElement.appendChild(buttonsContainer);
-
-    if (onPointClickArgs) {
-        chartDiv.on("plotly_click", function (eventData) {
-            onPointClick(
-                chartDiv,
-                eventData.points,
-                onPointClickArgs.selectedSchemeKey,
-                onPointClickArgs.scheme,
-                onPointClickArgs.testData
-            );
-        });
-    }
-
-    if (dynamicTicks) {
-        updateVisibleTicks(chartDiv);
-
-        chartDiv.on("plotly_relayout", function (eventData) {
-            const isZoomOrPan = eventData["xaxis.range[0]"] !== undefined || eventData["xaxis.autorange"] === true;
-            if (isZoomOrPan) {
-                setTimeout(() => updateVisibleTicks(chartDiv), 20);
-            }
-        });
-    }
 }
 
 function addChartContainer(name, chartsContainer) {
@@ -519,6 +433,92 @@ export function initializeApp(loadedData) {
         outlierCheckbox.checked = true;
     }
 
+    function buildChartButtons(onExpand, onShare) {
+        const buttonsContainer = document.createElement("div");
+        buttonsContainer.className = "chart-buttons-container";
+
+        const expandButton = document.createElement("button");
+        expandButton.textContent = "Expand";
+        expandButton.className = "expand-button";
+        buttonsContainer.appendChild(expandButton);
+
+        const shareButton = document.createElement("button");
+        shareButton.textContent = "Share";
+        shareButton.className = "share-button";
+        buttonsContainer.appendChild(shareButton);
+
+        expandButton.addEventListener("click", (event) => {
+            onExpand(event, expandButton)
+        });
+
+        shareButton.addEventListener("click", (event) => {
+            onShare(event, shareButton)
+        });
+
+        return buttonsContainer;
+    }
+
+    /** Adds additional elements to a chart container (e.g., expand/share buttons). */
+    function augmentChart(chartDiv, chartData) {
+        const {
+            layout,
+            traces,
+            testName,
+            onPointClickArgs,
+            dynamicTicks
+        } = chartData;
+
+        const buttonsContainer = buildChartButtons(
+            (_event, _expandButton) => {
+                const fullscreenLayout = JSON.parse(JSON.stringify(layout));
+                if (fullscreenLayout.title) {
+                    fullscreenLayout.title.font = {size: 24};
+                }
+                fullscreenOverlay.style.display = "block";
+                Plotly.newPlot(fullscreenChartDiv, traces, fullscreenLayout, {responsive: true});
+            },
+
+            (event, shareButton) => {
+                event.stopPropagation();
+                const params = captureState(testName);
+                const shareableUrl = `${window.location.origin}${window.location.pathname}#${params.toString()}`;
+                navigator.clipboard.writeText(shareableUrl).then(() => {
+                    shareButton.textContent = "Copied!";
+                    shareButton.classList.add("copied");
+                    setTimeout(() => {
+                        shareButton.textContent = "Share";
+                        shareButton.classList.remove("copied");
+                    }, 2000);
+                });
+            }
+        );
+
+        chartDiv.parentElement.appendChild(buttonsContainer);
+
+        if (onPointClickArgs) {
+            chartDiv.on("plotly_click", function (eventData) {
+                onPointClick(
+                    chartDiv,
+                    eventData.points,
+                    onPointClickArgs.selectedSchemeKey,
+                    onPointClickArgs.scheme,
+                    onPointClickArgs.testData
+                );
+            });
+        }
+
+        if (dynamicTicks) {
+            updateVisibleTicks(chartDiv);
+
+            chartDiv.on("plotly_relayout", function (eventData) {
+                const isZoomOrPan = eventData["xaxis.range[0]"] !== undefined || eventData["xaxis.autorange"] === true;
+                if (isZoomOrPan) {
+                    setTimeout(() => updateVisibleTicks(chartDiv), 20);
+                }
+            });
+        }
+    }
+
     const observer = new IntersectionObserver((entries, obs) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
@@ -674,7 +674,7 @@ export function initializeApp(loadedData) {
             title: styleTitle("Overall average duration (lower is better)"),
             xaxis: {
                 ...kCommonXAxisConfig,
-                title: scheme.title,
+                title: scheme.title
             },
             yaxis: {...kCommonYAxisConfig, title: "Sum of averages"},
             hoverlabel: kTooltipConfig
