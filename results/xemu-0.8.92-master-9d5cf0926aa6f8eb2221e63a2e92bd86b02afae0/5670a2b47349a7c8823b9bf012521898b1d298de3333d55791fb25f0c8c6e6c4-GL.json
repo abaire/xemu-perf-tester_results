@@ -57,38 +57,6 @@
       "average_us": 3404,
       "min_us": 2339,
       "max_us": 11577
-    },
-    {
-      "name": "High vertex count::MixedVtxCount-arrays",
-      "iterations": 50,
-      "total_us": 13464,
-      "average_us": 269,
-      "min_us": 221,
-      "max_us": 521
-    },
-    {
-      "name": "High vertex count::MixedVtxCount-inlinearrays",
-      "iterations": 4,
-      "total_us": 698547,
-      "average_us": 174636,
-      "min_us": 173434,
-      "max_us": 176146
-    },
-    {
-      "name": "High vertex count::MixedVtxCount-inlinebuffers",
-      "iterations": 2,
-      "total_us": 2378569,
-      "average_us": 1189284,
-      "min_us": 1159447,
-      "max_us": 1219104
-    },
-    {
-      "name": "High vertex count::MixedVtxCount-inlineelements",
-      "iterations": 10,
-      "total_us": 164101,
-      "average_us": 16410,
-      "min_us": 13171,
-      "max_us": 19691
     }
   ]
 }
