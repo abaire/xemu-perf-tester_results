@@ -6,7 +6,9 @@
 from __future__ import annotations
 
 import argparse
+import gzip
 import importlib.resources as pkg_resources
+import json
 import logging
 import os
 import sys
@@ -80,14 +82,25 @@ class FlatResultsRenderer(FlatResults):
             if "trend" not in entry:
                 entry["trend"] = _NO_TREND
 
-    def render(self, output_dir: str, html_file_name: str):
+    def render(self, output_dir: str, html_file_name: str, *, local_site_mode: bool = False):
         env = _get_jinja2_env()
 
         os.makedirs(output_dir, exist_ok=True)
 
+        if local_site_mode:
+            results_filename = "results.json"
+            results_path = os.path.join(output_dir, results_filename)
+            with open(results_path, "w", encoding="utf-8") as outfile:
+                json.dump(self.flattened_results, outfile, indent=2)
+        else:
+            results_filename = "results.json.gz"
+            results_path = os.path.join(output_dir, results_filename)
+            with gzip.open(results_path, "wt", encoding="utf-8") as outfile:
+                json.dump(self.flattened_results, outfile, indent=2)
+
         template_context = {
             "title": "xemu perf tester results",
-            "results_data": self.flattened_results,
+            "results_filename": results_filename,
         }
 
         template = env.get_template("report_template.html.jinja2")
@@ -99,9 +112,10 @@ class FlatResultsRenderer(FlatResults):
         with open(os.path.join(output_dir, "style.css"), "w", encoding="utf-8") as f:
             f.write(css_template.render(template_context))
 
-        js_template = env.get_template("script.js.jinja2")
-        with open(os.path.join(output_dir, "script.js"), "w", encoding="utf-8") as f:
-            f.write(js_template.render(template_context))
+        for js_file in ("script", "app", "data", "xemu_version"):
+            js_template = env.get_template(f"{js_file}.js.jinja2")
+            with open(os.path.join(output_dir, f"{js_file}.js"), "w", encoding="utf-8") as f:
+                f.write(js_template.render(template_context))
 
         logger.debug("Generated HTML report into '%s'", output_dir)
 
@@ -131,6 +145,12 @@ def entrypoint():
         nargs="+",
         help="Path to the root of the results to process.",
     )
+    parser.add_argument(
+        "--local_site_mode",
+        "-L",
+        action="store_true",
+        help="Emit artifacts suitable for running locally without a webserver",
+    )
 
     args = parser.parse_args()
 
@@ -146,7 +166,7 @@ def entrypoint():
     results = FlatResultsRenderer(load_results(result_paths))
 
     output_dir = os.path.abspath(os.path.expanduser(args.output_dir))
-    results.render(output_dir, args.output_html)
+    results.render(output_dir, args.output_html, local_site_mode=args.local_site_mode)
 
     return 0
 

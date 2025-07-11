@@ -9,6 +9,16 @@
 </head>
 <body>
 <h1>{{ title }}</h1>
+
+
+<div id="loading-container">
+    <p>Loading results data...</p>
+    <div id="progress-bar-container">
+        <div id="progress-bar"></div>
+    </div>
+    <p id="progress-text"></p>
+</div>
+
 <div id="charts-container"></div>
 
 <footer>
@@ -72,6 +82,6 @@
     <button id="close-fullscreen">&times; Close</button>
 </div>
 
-<script src="script.js"></script>
+<script type="module" src="script.js"></script>
 </body>
 </html>
