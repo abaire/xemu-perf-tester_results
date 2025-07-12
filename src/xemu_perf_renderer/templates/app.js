@@ -1,5 +1,4 @@
 import { augmentMinMax, processData } from "./data.js";
-import { XemuVersion } from "./xemu_version.js";
 
 const kPalette = [
   "#0C7BDC",
@@ -60,11 +59,15 @@ const kDataSlices = {
   "by-version": { field: "xemu_version_obj", title: "xemu Version" },
 };
 
+const kDefaultSlicingScheme = "by-version";
+
 const kDebounceTimeoutMilliseconds = 100;
 
 const kMatchingDataItemsPadding = 20;
 
 const kMaxJitter = 0.4;
+
+const kDefaultVersionsDisplayed = 30;
 
 const kMachineContinuityLineStyle = {
   color: "rgba(60, 20, 60, 0.7)",
@@ -141,7 +144,7 @@ function applyDataFilters(
   });
 }
 
-function createDataFilterChip(text) {
+function createDataFilterChip(text, onRemove) {
   const chipArea = document.getElementById("data-filter-chip-area");
 
   const chip = document.createElement("div");
@@ -161,7 +164,7 @@ function createDataFilterChip(text) {
 
   closeBtn.addEventListener("click", () => {
     chip.remove();
-    handleFilterChange();
+    onRemove();
   });
 
   chip.appendChild(chipText);
@@ -428,12 +431,36 @@ function filteredTestsByName(processedData, filterText) {
   return filteredTests;
 }
 
+function getAllVersions(allData) {
+  const versionMap = new Map();
+  allData.forEach((d) => {
+    versionMap.set(d.xemu_version_obj.compare_name, d.xemu_version_obj);
+  });
+
+  return Array.from(versionMap.values()).sort((a, b) => a.localeCompare(b));
+}
+
+function tomSelectScrollToCurrentValue() {
+  const selectedValue = this.getValue();
+
+  if (selectedValue) {
+    const selectedOption = this.getOption(selectedValue);
+    if (selectedOption) {
+      requestAnimationFrame(() =>
+        selectedOption.scrollIntoView({
+          block: "center",
+          behavior: "instant",
+        }),
+      );
+    }
+  }
+}
+
 export function initializeApp(loadedData) {
   let debounceTimer;
   const pendingCharts = new Map();
 
   const chartsContainer = document.getElementById("charts-container");
-  const viewModeSelector = document.getElementById("slice-selector");
 
   const outlierCheckbox = document.getElementById("outlier-checkbox");
   const showErrorBarsCheckbox = document.getElementById("error-bars-checkbox");
@@ -455,26 +482,64 @@ export function initializeApp(loadedData) {
 
   const suggestionsOverlay = document.getElementById("data-filter-suggestions");
 
-  for (const key in kDataSlices) {
-    const option = document.createElement("option");
-    option.value = key;
-    option.textContent = kDataSlices[key].title;
-    viewModeSelector.appendChild(option);
-  }
+  const allVersions = getAllVersions(loadedData);
 
-  const savedMode = localStorage.getItem("xemuPerfChartMode");
-  const savedOutlier = localStorage.getItem("xemuPerfExcludeOutlier");
+  const versionOptions = allVersions.map((version, index) => ({
+    value: index,
+    text: version.toString(),
+  }));
 
-  if (savedMode && kDataSlices[savedMode]) {
-    viewModeSelector.value = savedMode;
-  } else {
-    viewModeSelector.value = "by-version";
-  }
-  if (savedOutlier) {
-    outlierCheckbox.checked = savedOutlier === "true";
-  } else {
-    outlierCheckbox.checked = true;
-  }
+  const tomSelectSettings = {
+    options: versionOptions,
+    create: false,
+    sortField: { field: "value", direction: "asc" },
+    maxOptions: null,
+    onDropdownOpen: tomSelectScrollToCurrentValue,
+  };
+
+  const startSelect = new TomSelect(
+    document.getElementById("start-version-select"),
+    tomSelectSettings,
+  );
+  const endSelect = new TomSelect(
+    document.getElementById("end-version-select"),
+    tomSelectSettings,
+  );
+
+  startSelect.on("change", (startValue) => {
+    const startIndex = parseInt(startValue, 10);
+    if (Number.isNaN(startIndex)) return;
+
+    const validEndOptions = versionOptions.slice(startIndex);
+    endSelect.clearOptions();
+    endSelect.addOption(validEndOptions);
+
+    const currentEndIndex = parseInt(endSelect.getValue(), 10);
+    if (Number.isNaN(currentEndIndex) || currentEndIndex < startIndex) {
+      endSelect.setValue(startIndex);
+    }
+
+    handleFilterChange();
+  });
+
+  endSelect.on("change", handleFilterChange);
+
+  const sliceOptions = Object.entries(kDataSlices).map(([key, value]) => ({
+    value: key,
+    text: value.title,
+  }));
+
+  const viewModeSelector = new TomSelect(
+    document.getElementById("slice-selector"),
+    {
+      options: sliceOptions,
+      create: false,
+      onDropdownOpen: tomSelectScrollToCurrentValue,
+    },
+  );
+
+  viewModeSelector.on("change", handleFilterChange);
+  viewModeSelector.setValue(kDefaultSlicingScheme, true);
 
   function buildChartButtons(onExpand, onShare) {
     const buttonsContainer = document.createElement("div");
@@ -593,7 +658,7 @@ export function initializeApp(loadedData) {
   function captureState(anchorTestName) {
     const params = new URLSearchParams();
 
-    params.set("view", viewModeSelector.value);
+    params.set("view", viewModeSelector.getValue());
 
     const outlier = outlierCheckbox.checked;
     if (outlier) {
@@ -627,6 +692,9 @@ export function initializeApp(loadedData) {
       params.append("df", chip.dataset.filterValue);
     });
 
+    params.set("rangeStart", startSelect.getValue());
+    params.set("rangeEnd", endSelect.getValue());
+
     if (anchorTestName) {
       params.set("anchor", anchorTestName);
     }
@@ -659,7 +727,9 @@ export function initializeApp(loadedData) {
 
     const view = params.get("view");
     if (view && kDataSlices[view]) {
-      viewModeSelector.value = view;
+      viewModeSelector.setValue(view, true);
+    } else {
+      viewModeSelector.setValue(kDefaultSlicingScheme);
     }
 
     const outlier = params.get("outlier");
@@ -689,7 +759,16 @@ export function initializeApp(loadedData) {
 
     const chips = params.getAll("df");
     if (chips.length > 0) {
-      chips.forEach((chipText) => createDataFilterChip(chipText));
+      chips.forEach((chipText) =>
+        createDataFilterChip(chipText, handleFilterChange),
+      );
+    }
+
+    const start = params.get("rangeStart");
+    const end = params.get("rangeEnd");
+    if (start && end) {
+      startSelect.setValue(start, true);
+      endSelect.setValue(end, true);
     }
 
     return params.get("anchor");
@@ -732,6 +811,10 @@ export function initializeApp(loadedData) {
   }
 
   function renderSummaryChart(scheme, processedData) {
+    if (!scheme) {
+      throw Error("renderSummaryChart called with invalid scheme");
+    }
+
     const summaryChartDiv = addChartContainer("summary-chart", chartsContainer);
 
     const means = {};
@@ -863,20 +946,23 @@ export function initializeApp(loadedData) {
         });
       } else {
         const versions = testData.reduce((acc, d) => {
-          const arr = acc[d.xemu_version] || [];
+          const arr = acc[d.xemu_version_obj] || [];
           arr.push(d);
-          acc[d.xemu_version] = arr;
+          acc[d.xemu_version_obj.short_name] = arr;
           return acc;
         }, {});
 
-        Object.entries(versions).forEach(([version, versionData], index) => {
-          const color = kPalette[index % kPalette.length];
-          const name = new XemuVersion(version).toString();
-          if (showErrorBars) {
-            traces.push(buildErrorBars(versionData, name, color));
-          }
-          traces.push(buildTrace(versionData, name, color));
-        });
+        Object.entries(versions).forEach(
+          ([version_short_name, versionData], index) => {
+            const color = kPalette[index % kPalette.length];
+            if (showErrorBars) {
+              traces.push(
+                buildErrorBars(versionData, version_short_name, color),
+              );
+            }
+            traces.push(buildTrace(versionData, version_short_name, color));
+          },
+        );
       }
 
       const layout = {
@@ -920,7 +1006,7 @@ export function initializeApp(loadedData) {
     const showErrorBars = showErrorBarsCheckbox.checked;
     const highlightMinMax = highlightMinMaxCheckbox.checked;
 
-    const selectedSchemeKey = viewModeSelector.value;
+    const selectedSchemeKey = viewModeSelector.getValue();
     const scheme = kDataSlices[selectedSchemeKey];
     const testFilterText = testFilterInput.value.toLowerCase().trim();
     const dataFilterText = dataFilterInput.value.toLowerCase().trim();
@@ -934,8 +1020,28 @@ export function initializeApp(loadedData) {
 
     chartsContainer.innerHTML = "";
 
+    const startIdx = parseInt(startSelect.getValue(), 10);
+    const endIdx = parseInt(endSelect.getValue(), 10);
+
+    const startVersion =
+      allVersions[
+        Number.isNaN(startIdx)
+          ? Math.max(allVersions.length - 1 - kDefaultVersionsDisplayed, 0)
+          : startIdx
+      ];
+    const endVersion =
+      allVersions[Number.isNaN(endIdx) ? allVersions.length - 1 : endIdx];
+
+    const versionFilteredData = loadedData.filter((d) => {
+      const versionObj = d.xemu_version_obj;
+      return (
+        versionObj.localeCompare(startVersion) >= 0 &&
+        versionObj.localeCompare(endVersion) <= 0
+      );
+    });
+
     const filteredRawData = applyDataFilters(
-      loadedData,
+      versionFilteredData,
       dataFilterText,
       positiveFilters,
       negativeFilters,
@@ -1077,8 +1183,6 @@ export function initializeApp(loadedData) {
     }, kDebounceTimeoutMilliseconds);
   }
 
-  viewModeSelector.addEventListener("change", handleFilterChange);
-
   outlierCheckbox.addEventListener("change", handleFilterChange);
   showErrorBarsCheckbox.addEventListener("change", handleFilterChange);
   highlightMinMaxCheckbox.addEventListener("change", handleFilterChange);
@@ -1094,7 +1198,7 @@ export function initializeApp(loadedData) {
       suggestionsOverlay.style.display = "none";
 
       if (text && text !== "!") {
-        createDataFilterChip(text);
+        createDataFilterChip(text, handleFilterChange);
         handleFilterChange();
       }
     }
@@ -1114,6 +1218,26 @@ export function initializeApp(loadedData) {
   });
 
   const initialAnchor = applyStateFromURL();
+
+  function initializeVersionRange() {
+    let currentEndIndex = parseInt(endSelect.getValue(), 10);
+    if (
+      Number.isNaN(currentEndIndex) ||
+      currentEndIndex >= allVersions.length
+    ) {
+      currentEndIndex = allVersions.length - 1;
+      endSelect.setValue(currentEndIndex, true);
+    }
+
+    if (Number.isNaN(parseInt(startSelect.getValue(), 10))) {
+      const startIndex = currentEndIndex - kDefaultVersionsDisplayed;
+      startSelect.setValue(startIndex, true);
+      endSelect.clearOptions();
+      endSelect.addOption(versionOptions.slice(startIndex));
+    }
+  }
+
+  initializeVersionRange();
 
   renderAllCharts();
 

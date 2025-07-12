@@ -10,7 +10,10 @@ export class XemuVersion {
     this.short_name = version_obj.short;
     this.compare_name = version_obj.compare;
 
-    console.assert(this.short_name && this.compare_name);
+    if (!this.short_name || !this.compare_name) {
+      console.error(`Invalid version object ${version_obj}`);
+      throw new Error("Invalid version object");
+    }
   }
 
   toString() {
