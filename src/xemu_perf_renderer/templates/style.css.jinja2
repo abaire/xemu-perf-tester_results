@@ -242,7 +242,7 @@ footer {
     gap: 5px;
 }
 
-.expand-button, .share-button {
+.expand-button, .share-button, .info-button {
     cursor: pointer;
     background: #f0f0f0;
     border: 1px solid #ccc;
@@ -294,8 +294,12 @@ footer {
 }
 
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 .version-range-container {
@@ -309,10 +313,10 @@ footer {
 }
 
 .ts-control .item {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 90%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 90%;
 }
 
 .ts-wrapper {
@@ -323,4 +327,52 @@ footer {
     top: auto !important;
     bottom: 100%;
     margin-bottom: 4px;
+}
+
+.has-tooltip {
+    position: relative;
+}
+
+.has-tooltip::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    left: 105%;
+    top: 50%;
+    transform: translateY(-50%);
+
+    width: 350px;
+    background-color: white;
+    color: #333;
+    border: 1px solid #ddd;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    text-align: left;
+    padding: 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    line-height: 1.4;
+    white-space: pre-wrap;
+
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.2s, visibility 0.2s;
+    z-index: 20;
+}
+
+.has-tooltip:hover::after {
+    visibility: visible;
+    opacity: 1;
+}
+
+.info-button {
+    position: relative;
+    text-align: center;
+}
+
+.info-button::before {
+    content: attr(data-hover-text);
+    display: block;
+    font-weight: bold;
+    height: 0;
+    overflow: hidden;
+    visibility: hidden;
 }

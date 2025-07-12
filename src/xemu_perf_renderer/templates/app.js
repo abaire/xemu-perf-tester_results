@@ -456,7 +456,42 @@ function tomSelectScrollToCurrentValue() {
   }
 }
 
-export function initializeApp(loadedData) {
+function getTestDescriptor(fullyQualifiedTestName, testSuiteDescriptors) {
+  if (!testSuiteDescriptors) {
+    return {};
+  }
+
+  const components = fullyQualifiedTestName.split("::");
+  const testSuite = components[0];
+  const testName = components[1];
+
+  let descriptor = testSuiteDescriptors[testSuite];
+  if (!descriptor) {
+    // Descriptor keys are generally of the form TestSuiteTests whereas the suite
+    // names tend to be "Test_suite" or "Test suite".
+    const camelCased = testSuite
+      .split(/[_\s]/)
+      .map((element) => element.charAt(0).toUpperCase() + element.slice(1))
+      .join("");
+
+    descriptor = testSuiteDescriptors[camelCased];
+    if (!descriptor) {
+      descriptor = testSuiteDescriptors[`${camelCased}Tests`];
+    }
+  }
+
+  if (!descriptor) {
+    return {};
+  }
+
+  return {
+    suiteDescription: descriptor.description,
+    suiteSourceURL: descriptor.source_file,
+    testDescription: descriptor.tests[testName],
+  };
+}
+
+export function initializeApp(loadedData, testSuiteDescriptors) {
   let debounceTimer;
   const pendingCharts = new Map();
 
@@ -541,7 +576,7 @@ export function initializeApp(loadedData) {
   viewModeSelector.on("change", handleFilterChange);
   viewModeSelector.setValue(kDefaultSlicingScheme, true);
 
-  function buildChartButtons(onExpand, onShare) {
+  function buildChartButtons() {
     const buttonsContainer = document.createElement("div");
     buttonsContainer.className = "chart-buttons-container";
 
@@ -555,48 +590,71 @@ export function initializeApp(loadedData) {
     shareButton.className = "share-button";
     buttonsContainer.appendChild(shareButton);
 
-    expandButton.addEventListener("click", (event) => {
-      onExpand(event, expandButton);
-    });
+    const infoButton = document.createElement("button");
+    infoButton.textContent = "Info";
+    infoButton.className = "info-button";
+    infoButton.classList.add("has-tooltip");
+    infoButton.dataset.hoverText = "View source";
+    buttonsContainer.appendChild(infoButton);
 
-    shareButton.addEventListener("click", (event) => {
-      onShare(event, shareButton);
-    });
-
-    return buttonsContainer;
+    return { buttonsContainer, expandButton, shareButton, infoButton };
   }
 
   /** Adds additional elements to a chart container (e.g., expand/share buttons). */
   function augmentChart(chartDiv, chartData) {
-    const { layout, traces, testName, onPointClickArgs, dynamicTicks } =
-      chartData;
+    const {
+      layout,
+      traces,
+      testName,
+      onPointClickArgs,
+      dynamicTicks,
+      testDescriptor,
+    } = chartData;
 
-    const buttonsContainer = buildChartButtons(
-      (_event, _expandButton) => {
-        const fullscreenLayout = JSON.parse(JSON.stringify(layout));
-        if (fullscreenLayout.title) {
-          fullscreenLayout.title.font = { size: 24 };
-        }
-        fullscreenOverlay.style.display = "block";
-        Plotly.newPlot(fullscreenChartDiv, traces, fullscreenLayout, {
-          responsive: true,
-        });
-      },
+    const { buttonsContainer, expandButton, shareButton, infoButton } =
+      buildChartButtons();
 
-      (event, shareButton) => {
-        event.stopPropagation();
-        const params = captureState(testName);
-        const shareableUrl = `${window.location.origin}${window.location.pathname}#${params.toString()}`;
-        navigator.clipboard.writeText(shareableUrl).then(() => {
-          shareButton.textContent = "Copied!";
-          shareButton.classList.add("copied");
-          setTimeout(() => {
-            shareButton.textContent = "Share";
-            shareButton.classList.remove("copied");
-          }, 2000);
-        });
-      },
-    );
+    expandButton.addEventListener("click", () => {
+      const fullscreenLayout = JSON.parse(JSON.stringify(layout));
+      if (fullscreenLayout.title) {
+        fullscreenLayout.title.font = { size: 24 };
+      }
+      fullscreenOverlay.style.display = "block";
+      Plotly.newPlot(fullscreenChartDiv, traces, fullscreenLayout, {
+        responsive: true,
+      });
+    });
+
+    shareButton.addEventListener("click", (event) => {
+      event.stopPropagation();
+      const params = captureState(testName);
+      const shareableUrl = `${window.location.origin}${window.location.pathname}#${params.toString()}`;
+      navigator.clipboard.writeText(shareableUrl).then(() => {
+        shareButton.textContent = "Copied!";
+        shareButton.classList.add("copied");
+        setTimeout(() => {
+          shareButton.textContent = "Share";
+          shareButton.classList.remove("copied");
+        }, 2000);
+      });
+    });
+
+    if (!testDescriptor) {
+      infoButton.style.display = "none";
+    } else {
+      infoButton.dataset.tooltip = `${testDescriptor.testDescription}`;
+
+      infoButton.addEventListener("mouseenter", () => {
+        infoButton.textContent = "Source";
+      });
+      infoButton.addEventListener("mouseleave", () => {
+        infoButton.textContent = "Info";
+      });
+
+      infoButton.addEventListener("click", () => {
+        window.open(testDescriptor.suiteSourceURL, "_blank");
+      });
+    }
 
     chartDiv.parentElement.appendChild(buttonsContainer);
 
@@ -891,8 +949,6 @@ export function initializeApp(loadedData) {
     const testsByName = filteredTestsByName(processedData, filterText);
 
     for (const testName in testsByName) {
-      const chartDiv = addChartContainer(testName, chartsContainer);
-
       const testData = testsByName[testName];
 
       const xCategories = [
@@ -983,6 +1039,7 @@ export function initializeApp(loadedData) {
         hoverlabel: kTooltipConfig,
       };
 
+      const chartDiv = addChartContainer(testName, chartsContainer);
       chartDiv.fullTickvals = Array.from(categoryMap.values());
       chartDiv.fullTicktext = Array.from(categoryMap.keys());
 
@@ -996,6 +1053,7 @@ export function initializeApp(loadedData) {
           categoryMap: categoryMap,
         },
         dynamicTicks: true,
+        testDescriptor: getTestDescriptor(testName, testSuiteDescriptors),
       });
       observer.observe(chartDiv);
     }

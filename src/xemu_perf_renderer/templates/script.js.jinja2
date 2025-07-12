@@ -3,6 +3,7 @@ import {initializeApp} from "./app.js";
 
 
 document.addEventListener("DOMContentLoaded", async function () {
+    const testSuiteDescirptors = {{ test_suite_descriptors | tojson | safe }};
     const loadingContainer = document.getElementById("loading-container");
     const chartsContainer = document.getElementById("charts-container");
 
@@ -37,7 +38,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         loadingContainer.style.display = "none";
         chartsContainer.style.display = "block";
 
-        initializeApp(data);
+        initializeApp(data, testSuiteDescirptors);
     } catch (error) {
         displayError(error);
     }
