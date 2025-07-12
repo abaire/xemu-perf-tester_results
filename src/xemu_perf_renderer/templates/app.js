@@ -695,6 +695,42 @@ export function initializeApp(loadedData) {
     return params.get("anchor");
   }
 
+  function styleSummaries(summaryData) {
+    const ret = {
+      colors: [],
+      lineColors: [],
+      lineWidths: [],
+    };
+
+    summaryData.forEach((d) => {
+      const uniqueMachineCount = d.uniqueMachineCount;
+
+      let color;
+      let lineColor;
+      let lineWidth;
+
+      if (uniqueMachineCount < 4) {
+        color = "rgba(0, 0, 0, 0.1)";
+        lineColor = "rgba(211, 47, 47, 0.8)";
+        lineWidth = 0;
+      } else if (uniqueMachineCount < 10) {
+        color = "rgb(200, 200, 40)";
+        lineColor = color;
+        lineWidth = 0;
+      } else {
+        color = "rgb(52, 152, 219)";
+        lineColor = color;
+        lineWidth = 0;
+      }
+
+      ret.colors.push(color);
+      ret.lineColors.push(lineColor);
+      ret.lineWidths.push(lineWidth);
+    });
+
+    return ret;
+  }
+
   function renderSummaryChart(scheme, processedData) {
     const summaryChartDiv = addChartContainer("summary-chart", chartsContainer);
 
@@ -702,10 +738,15 @@ export function initializeApp(loadedData) {
     for (const d of processedData) {
       const category = d[scheme.field];
       if (!means[category]) {
-        means[category] = { total_us: 0, count: 0 };
+        means[category] = {
+          total_us: 0,
+          count: 0,
+          machine_ids: new Set(),
+        };
       }
       means[category].total_us += d.average_us;
-      means[category].count++;
+      ++means[category].count;
+      means[category].machine_ids.add(d.machine_id);
     }
 
     const summaryData = Object.entries(means).map(([category, totals]) => {
@@ -713,17 +754,28 @@ export function initializeApp(loadedData) {
         category: category,
         score: totals.total_us / totals.count / 1000.0,
         points: totals.count,
+        uniqueMachineCount: totals.machine_ids.size,
       };
     });
 
+    const summaryStyles = styleSummaries(summaryData);
     const trace = {
       type: "bar",
+      marker: {
+        color: summaryStyles.colors,
+        line: {
+          color: summaryStyles.lineColors,
+          width: summaryStyles.lineWidths,
+          dash: "dot",
+        },
+      },
       x: summaryData.map((d) => d.category),
       y: summaryData.map((d) => d.score),
-      customdata: summaryData.map((d) => d.points),
+      customdata: summaryData.map((d) => [d.points, d.uniqueMachineCount]),
       hovertemplate:
-        "<b>%{y}</b><br>" +
-        "Num data points: %{customdata}" +
+        "<b>%{y:.2f}</b><br>" +
+        "Num data points: %{customdata[0]}<br>" +
+        "Unique machines: %{customdata[1]}" +
         "<extra></extra>",
     };
 
