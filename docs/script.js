@@ -1,0 +1,44 @@
+import {expandData} from "./data.js";
+import {initializeApp} from "./app.js";
+
+
+document.addEventListener("DOMContentLoaded", async function () {
+    const loadingContainer = document.getElementById("loading-container");
+    const chartsContainer = document.getElementById("charts-container");
+
+    function displayError(error) {
+        console.error("Failed to load data:", error);
+        loadingContainer.innerHTML = '<p style="color: red;">Error: Could not load data.</p>';
+    }
+
+    try {
+        const response = await fetch("results.json.gz");
+        if (!response.ok) {
+            displayError(`Data load failed: HTTP ${response.status}`)
+            return;
+        }
+
+        const contentEncoding = response.headers.get("Content-Encoding");
+        const contentType = response.headers.get("Content-Type");
+
+        const likelyCompressed = contentType.includes("gzip") || contentType.includes("x-gzip") || response.url.endsWith(".gz");
+
+        let data;
+        if (contentEncoding === "gzip" || !likelyCompressed) {
+            data = await response.json();
+        } else {
+            const compressedData = await response.arrayBuffer();
+            const decompressedData = pako.inflate(compressedData, {to: "string"});
+            data = JSON.parse(decompressedData);
+        }
+
+        data = expandData(data);
+
+        loadingContainer.style.display = "none";
+        chartsContainer.style.display = "block";
+
+        initializeApp(data);
+    } catch (error) {
+        displayError(error);
+    }
+});
