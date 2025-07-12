@@ -19,6 +19,7 @@ from typing import Any
 from jinja2 import Environment, FileSystemLoader
 
 from xemu_perf_renderer.util.data import FlatResults, load_results
+from xemu_perf_renderer.util.test_suite_descriptor_loader import TestSuiteDescriptor, TestSuiteDescriptorLoader
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +30,20 @@ _NO_TREND = "N"
 _STABLE_TREND = "S"
 _IMPROVING_TREND = "I"
 _WORSENING_TREND = "W"
+
+
+def _flatten_test_suite_descriptor(
+    test_suite_descriptor: TestSuiteDescriptor, source_repo_url_prefix: str | None
+) -> dict[str, Any]:
+    ret = {
+        "class_name": test_suite_descriptor.class_name,
+        "description": test_suite_descriptor.description,
+        "tests": test_suite_descriptor.test_descriptions,
+    }
+
+    if source_repo_url_prefix:
+        ret["source_file"] = f"{source_repo_url_prefix}/{test_suite_descriptor.source_file}"
+    return ret
 
 
 class FlatResultsRenderer(FlatResults):
@@ -82,8 +97,19 @@ class FlatResultsRenderer(FlatResults):
             if "trend" not in entry:
                 entry["trend"] = _NO_TREND
 
-    def render(self, output_dir: str, html_file_name: str, *, local_site_mode: bool = False):
+    def render(
+        self,
+        output_dir: str,
+        html_file_name: str,
+        *,
+        local_site_mode: bool = False,
+        test_suite_descriptors: dict[str, Any] | None = None,
+        source_repo_url_prefix: str | None = None,
+    ):
         env = _get_jinja2_env()
+
+        if test_suite_descriptors is None:
+            test_suite_descriptors = {}
 
         os.makedirs(output_dir, exist_ok=True)
 
@@ -101,6 +127,10 @@ class FlatResultsRenderer(FlatResults):
         template_context = {
             "title": "xemu perf tester results",
             "results_filename": results_filename,
+            "test_suite_descriptors": {
+                key: _flatten_test_suite_descriptor(value, source_repo_url_prefix)
+                for key, value in test_suite_descriptors.items()
+            },
         }
 
         template = env.get_template("report_template.html.jinja2")
@@ -157,6 +187,16 @@ def entrypoint():
         action="store_true",
         help="Emit artifacts suitable for running locally without a webserver",
     )
+    parser.add_argument(
+        "--test-descriptor-registry-url",
+        default="https://raw.githubusercontent.com/abaire/xemu-perf-tests/pages_doxygen/xml/tests_registry.json",
+        help="URL at which the JSON test suite registry describing tests may be publicly accessed.",
+    )
+    parser.add_argument(
+        "--test-source-url-prefix",
+        default="https://github.com/abaire/xemu-perf-tests/blob/main",
+        help="URL at which the test suite source files may be accessed.",
+    )
 
     args = parser.parse_args()
 
@@ -169,10 +209,22 @@ def entrypoint():
             logger.error("Results directory '%s' does not exist", path)
             return 1
 
+    test_suite_descriptors = (
+        TestSuiteDescriptorLoader(args.test_descriptor_registry_url).process()
+        if args.test_descriptor_registry_url
+        else {}
+    )
+
     results = FlatResultsRenderer(load_results(result_paths))
 
     output_dir = os.path.abspath(os.path.expanduser(args.output_dir))
-    results.render(output_dir, args.output_html, local_site_mode=args.local_site_mode)
+    results.render(
+        output_dir,
+        args.output_html,
+        local_site_mode=args.local_site_mode,
+        test_suite_descriptors=test_suite_descriptors,
+        source_repo_url_prefix=args.test_source_url_prefix,
+    )
 
     return 0
 
