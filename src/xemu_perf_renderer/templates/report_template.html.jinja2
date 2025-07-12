@@ -5,8 +5,15 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="style.css">
+
     <script src="https://cdn.plot.ly/plotly-3.0.1.min.js"></script>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
+
+    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.default.css"
+          rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+
 </head>
 <body>
 <h1>{{ title }}</h1>
@@ -25,13 +32,27 @@
         Submit results!
     </a>
     <div class="controls-container">
-        <div class="control-item">
-            <label for="slice-selector">Slice by</label>
-            <select id="slice-selector"></select>
+        <div class="control-item-column">
+
+            <div class="control-item">
+                <label for="start-version-select">Version</label>
+                <div class="version-range-container">
+                    <select id="start-version-select"
+                            placeholder="Select start..."></select>
+                    <span>to</span>
+                    <select id="end-version-select"
+                            placeholder="Select end..."></select>
+                </div>
+            </div>
+
+            <div class="control-item">
+                <label for="slice-selector">Slice by</label>
+                <select id="slice-selector"></select>
+            </div>
         </div>
         <div class="control-item-column">
             <div class="control-item">
-                <input type="checkbox" id="outlier-checkbox">
+                <input type="checkbox" id="outlier-checkbox" checked="checked">
                 <label for="outlier-checkbox">Exclude max outlier</label>
             </div>
             <div class="control-item">

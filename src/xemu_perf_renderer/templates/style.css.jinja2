@@ -61,6 +61,7 @@ footer {
     display: flex;
     align-items: flex-start;
     flex-direction: column;
+    gap: 8px;
 }
 
 .control-item {
@@ -295,4 +296,31 @@ footer {
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+}
+
+.version-range-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.ts-control {
+    min-width: 250px;
+}
+
+.ts-control .item {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 90%;
+}
+
+.ts-wrapper {
+    position: relative;
+}
+
+.ts-dropdown {
+    top: auto !important;
+    bottom: 100%;
+    margin-bottom: 4px;
 }
