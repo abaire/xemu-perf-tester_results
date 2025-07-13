@@ -38,6 +38,15 @@ _XEMU_RELEASE_SPECIAL_CASES = {
         "b6d6a4709d7563a0cc03a06cd80f7107b54a52e2",
         XemuVersionType.RELEASE,
     ),
+    "xemu-0.7.0- -9c06980275b6b31fc9f1b7f7df9ac692dad508d8": (
+        0,
+        7,
+        0,
+        None,
+        None,
+        "9c06980275b6b31fc9f1b7f7df9ac692dad508d8",
+        XemuVersionType.RELEASE,
+    ),
 }
 
 
