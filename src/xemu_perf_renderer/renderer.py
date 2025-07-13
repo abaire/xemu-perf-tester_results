@@ -113,16 +113,21 @@ class FlatResultsRenderer(FlatResults):
 
         os.makedirs(output_dir, exist_ok=True)
 
+        results_data = {
+            "results": self.flattened_results,
+            "tags": self.friendly_names,
+        }
+
         if local_site_mode:
             results_filename = "results.json"
             results_path = os.path.join(output_dir, results_filename)
             with open(results_path, "w", encoding="utf-8") as outfile:
-                json.dump(self.flattened_results, outfile, indent=2)
+                json.dump(results_data, outfile, indent=2)
         else:
             results_filename = "results.json.gz"
             results_path = os.path.join(output_dir, results_filename)
             with gzip.open(results_path, "wt", encoding="utf-8") as outfile:
-                json.dump(self.flattened_results, outfile, indent=2)
+                json.dump(results_data, outfile, indent=2)
 
         template_context = {
             "title": "xemu perf tester results",

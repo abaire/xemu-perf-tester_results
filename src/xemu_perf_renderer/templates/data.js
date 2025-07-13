@@ -16,8 +16,14 @@ function expandTrendEnum(val) {
 }
 
 export function expandData(rawData) {
-  return rawData.map((d) => {
+  const results = rawData.results;
+  const tags = rawData.tags;
+  const updated = results.map((d) => {
     const version_obj = new XemuVersion(d.xemu_version_obj);
+    const associated_tag = tags[version_obj.compare_name];
+    if (associated_tag) {
+      version_obj.setTag(associated_tag);
+    }
     return {
       ...d,
       xemu_version_obj: version_obj,
@@ -25,6 +31,11 @@ export function expandData(rawData) {
       trend: expandTrendEnum(d.trend),
     };
   });
+
+  return {
+    ...rawData,
+    results: updated,
+  };
 }
 
 export function processData(rawData, excludeMaxOutlier) {

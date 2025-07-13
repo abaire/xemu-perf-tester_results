@@ -5,6 +5,8 @@ import glob
 import json
 import os
 import re
+from collections import defaultdict
+from dataclasses import dataclass
 from enum import StrEnum
 from typing import Any
 
@@ -47,12 +49,19 @@ _XEMU_RELEASE_SPECIAL_CASES = {
         "9c06980275b6b31fc9f1b7f7df9ac692dad508d8",
         XemuVersionType.RELEASE,
     ),
+    "xemu-0.7.81- -8fbbe0f0f335e5b3a4da247c84c716cbdc65d1e5": (
+        0,
+        7,
+        81,
+        None,
+        None,
+        "8fbbe0f0f335e5b3a4da247c84c716cbdc65d1e5",
+        XemuVersionType.RELEASE,
+    ),
 }
 
 
-class XemuVersion:
-    """Parses xemu version strings into semantic versions."""
-
+class _XemuVersionBuilder:
     def __init__(self, version_string: str):
         self.major: int
         self.minor: int
@@ -68,19 +77,6 @@ class XemuVersion:
         self.compare_name: str
 
         self._build_special_names()
-
-    def to_object(self) -> dict[str, Any]:
-        return {
-            "major": self.major,
-            "minor": self.minor,
-            "patch": self.patch,
-            "build": self.build,
-            "branch": self.branch,
-            "git_hash": self.git_hash,
-            "build_type": str(self.type),
-            "short": self.short_name,
-            "compare": self.compare_name,
-        }
 
     def _build_special_names(self):
         if self.type == XemuVersionType.RELEASE:
@@ -144,6 +140,50 @@ class XemuVersion:
         raise ValueError(msg)
 
 
+@dataclass(frozen=True)
+class XemuVersion:
+    """Parses xemu version strings into semantic versions."""
+
+    major: int
+    minor: int
+    patch: int
+    build: int | None
+    branch: str | None
+    git_hash: str
+    type: XemuVersionType
+    short_name: str
+    compare_name: str
+
+    @classmethod
+    def parse(cls, version_str: str) -> XemuVersion:
+        builder = _XemuVersionBuilder(version_str)
+
+        return XemuVersion(
+            major=builder.major,
+            minor=builder.minor,
+            patch=builder.patch,
+            build=builder.build,
+            branch=builder.branch,
+            git_hash=builder.git_hash,
+            type=builder.type,
+            short_name=builder.short_name,
+            compare_name=builder.compare_name,
+        )
+
+    def to_object(self) -> dict[str, Any]:
+        return {
+            "major": self.major,
+            "minor": self.minor,
+            "patch": self.patch,
+            "build": self.build,
+            "branch": self.branch,
+            "git_hash": self.git_hash,
+            "build_type": str(self.type),
+            "short": self.short_name,
+            "compare": self.compare_name,
+        }
+
+
 class FlatResults:
     def __init__(self, flat_results: list[dict[str, Any]]):
         def _patch_gpu_renderer(gpu: str, cpu: str) -> str:
@@ -151,6 +191,8 @@ class FlatResults:
             return cpu if gpu == "AMD Radeon (TM) Graphics" else gpu
 
         self.flattened_results = []
+
+        friendly_names = defaultdict(set)
         for result in flat_results:
             machine_info = result["machine_info"]
             for test_result in result.get("results", []):
@@ -164,12 +206,13 @@ class FlatResults:
                 error_plus_us = max_us - average_us
                 error_minus_us = average_us - min_us
 
+                version = result["xemu_version"]
+                xemu_version_obj = XemuVersion.parse(version)
+
                 xemu_tag: str = result.get("xemu_tag", "")
                 if xemu_tag:
                     xemu_tag = xemu_tag.removeprefix("https://github.com/")
-
-                version = result["xemu_version"]
-                xemu_version_obj = XemuVersion(version)
+                    friendly_names[xemu_version_obj].add(xemu_tag)
 
                 flattened = {
                     "suite": test_result["name"].split("::")[0] if "::" in test_result["name"] else "N/A",
@@ -212,6 +255,18 @@ class FlatResults:
                     flattened["error_plus_us_exmax"] = inner_max_us - average_excluding_max
 
                 self.flattened_results.append(flattened)
+
+        self.friendly_names = {}
+        for version, tags in friendly_names.items():
+            if version.type == XemuVersionType.RELEASE:
+                continue
+
+            best_tag = None
+            for tag in tags:
+                if not best_tag or "pull" in tag:
+                    best_tag = tag
+
+            self.friendly_names[version.compare_name] = f"fork-{best_tag}"
 
 
 def _expand_gpu_info(result: dict[str, Any]):

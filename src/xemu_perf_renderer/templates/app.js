@@ -282,6 +282,22 @@ function addChartContainer(name, chartsContainer) {
 }
 
 function buildCustomData(machineData) {
+  function tagInfo(data) {
+    if (!data.xemu_version.startsWith("xemu-0.0.0-")) {
+      return "";
+    }
+
+    if (data.xemu_version_obj.friendlyName) {
+      return `<br>  AKA: ${data.xemu_version_obj.friendlyName}`;
+    }
+
+    if (data.xemu_tag) {
+      return `<br>  Tag: ${data.xemu_tag}`;
+    }
+
+    return "";
+  }
+
   return machineData.map((d) => [
     d.xemu_version,
     d.os_system,
@@ -294,9 +310,7 @@ function buildCustomData(machineData) {
     d.cpu_freq_max,
     Number.isNaN(d.adjusted_min_ms) ? "??" : d.adjusted_min_ms,
     Number.isNaN(d.adjusted_max_ms) ? "No range data" : d.adjusted_max_ms,
-    d.xemu_version.startsWith("xemu-0.0.0-") && d.xemu_tag
-      ? `<br>  Tag: ${d.xemu_tag}`
-      : "",
+    tagInfo(d),
   ]);
 }
 
@@ -517,7 +531,8 @@ export function initializeApp(loadedData, testSuiteDescriptors) {
 
   const suggestionsOverlay = document.getElementById("data-filter-suggestions");
 
-  const allVersions = getAllVersions(loadedData);
+  const loadedResults = loadedData.results;
+  const allVersions = getAllVersions(loadedResults);
 
   const versionOptions = allVersions.map((version, index) => ({
     value: index,
@@ -1090,7 +1105,7 @@ export function initializeApp(loadedData, testSuiteDescriptors) {
     const endVersion =
       allVersions[Number.isNaN(endIdx) ? allVersions.length - 1 : endIdx];
 
-    const versionFilteredData = loadedData.filter((d) => {
+    const versionFilteredData = loadedResults.filter((d) => {
       const versionObj = d.xemu_version_obj;
       return (
         versionObj.localeCompare(startVersion) >= 0 &&
@@ -1153,7 +1168,7 @@ export function initializeApp(loadedData, testSuiteDescriptors) {
 
     const matchCounts = {};
     const matchingMachines = new Set();
-    loadedData.forEach((d) => {
+    loadedResults.forEach((d) => {
       for (const field of kSearchableDataFields) {
         const value = d[field];
         if (value?.toLowerCase().includes(filterText)) {

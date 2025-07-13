@@ -9,11 +9,18 @@ export class XemuVersion {
     this.build_type = version_obj.build_type;
     this.short_name = version_obj.short;
     this.compare_name = version_obj.compare;
+    this.friendlyName = null;
 
     if (!this.short_name || !this.compare_name) {
       console.error(`Invalid version object ${version_obj}`);
       throw new Error("Invalid version object");
     }
+  }
+
+  setTag(associatedTag) {
+    this.friendlyName = associatedTag;
+    this.compare_name = associatedTag;
+    this.short_name = associatedTag;
   }
 
   toString() {
