@@ -1,0 +1,191 @@
+{
+  "iso": "xemu-perf-tests-v2025-07-12_20-45-10-665226282.iso",
+  "suite_allowlist": null,
+  "xemu_version": "xemu-0.8.13-master-61e29a06782c93789793f6e7288b1d0473b03488",
+  "xemu_machine_info": "xemu_version: 0.8.13\nxemu_branch: master\nxemu_commit: 61e29a06782c93789793f6e7288b1d0473b03488\nxemu_date: Sun Jan 26 11:48:49 UTC 2025\nCPU: AMD Ryzen Z1 Extreme                           \nOS_Version:  24H2\nGL_VENDOR: ATI Technologies Inc.\nGL_RENDERER: AMD Radeon Graphics\nGL_VERSION: 4.0.0 Core Profile Context 25.5.1.250417\nGL_SHADING_LANGUAGE_VERSION: 4.60\n         Automatically detecting the format is dangerous for raw images, write operations on block 0 will be restricted.\n         Specify the 'raw' format explicitly to remove the restrictions.\n",
+  "machine_info": {
+    "cpu_manufacturer": "AMD Ryzen Z1 Extreme",
+    "cpu_vendor_id": "AuthenticAMD",
+    "cpu_stepping": 1,
+    "cpu_model": 116,
+    "cpu_family": 25,
+    "cpu_cores": 8,
+    "hw_threads": 16,
+    "os_system": "Windows",
+    "os_release": "10",
+    "os_version": "10.0.26100",
+    "os_machine_type": "AMD64",
+    "cpu_freq_max": 3301.0,
+    "os_win_edition": "Core",
+    "os_win_version": [
+      "10",
+      "10.0.26100",
+      "SP0",
+      "Multiprocessor Free"
+    ]
+  },
+  "renderer": "GL",
+  "results": [
+    {
+      "name": "Vertex buffer allocation::MixedVtxAlloc-arrays",
+      "iterations": 10,
+      "total_us": 1278132,
+      "average_us": 127813,
+      "min_us": 124388,
+      "max_us": 137076,
+      "raw_results": [
+        137076,
+        129168,
+        129585,
+        126717,
+        126173,
+        124717,
+        126501,
+        127123,
+        124388,
+        126684
+      ]
+    },
+    {
+      "name": "Vertex buffer allocation::MixedVtxAlloc-inlinearrays",
+      "iterations": 10,
+      "total_us": 1414399,
+      "average_us": 141439,
+      "min_us": 136907,
+      "max_us": 154046,
+      "raw_results": [
+        154046,
+        137428,
+        141965,
+        137221,
+        138600,
+        136907,
+        147227,
+        147035,
+        136986,
+        136984
+      ]
+    },
+    {
+      "name": "Vertex buffer allocation::MixedVtxAlloc-inlinebuffers",
+      "iterations": 10,
+      "total_us": 5461513,
+      "average_us": 546151,
+      "min_us": 538803,
+      "max_us": 558094,
+      "raw_results": [
+        542204,
+        538803,
+        542876,
+        539415,
+        541954,
+        544719,
+        540530,
+        556404,
+        558094,
+        556514
+      ]
+    },
+    {
+      "name": "Vertex buffer allocation::MixedVtxAlloc-inlineelements",
+      "iterations": 10,
+      "total_us": 1354411,
+      "average_us": 135441,
+      "min_us": 133002,
+      "max_us": 139826,
+      "raw_results": [
+        133002,
+        136193,
+        135923,
+        133707,
+        136216,
+        133811,
+        134318,
+        133480,
+        137935,
+        139826
+      ]
+    },
+    {
+      "name": "Vertex buffer allocation::TinyAlloc-arrays",
+      "iterations": 10,
+      "total_us": 262826,
+      "average_us": 26282,
+      "min_us": 23635,
+      "max_us": 28330,
+      "raw_results": [
+        25419,
+        24944,
+        25473,
+        23635,
+        26877,
+        27483,
+        27014,
+        26153,
+        27498,
+        28330
+      ]
+    },
+    {
+      "name": "Vertex buffer allocation::TinyAlloc-inlinearrays",
+      "iterations": 10,
+      "total_us": 543490,
+      "average_us": 54349,
+      "min_us": 32039,
+      "max_us": 222422,
+      "raw_results": [
+        222422,
+        53104,
+        34438,
+        34362,
+        32703,
+        32126,
+        34706,
+        32039,
+        35515,
+        32075
+      ]
+    },
+    {
+      "name": "Vertex buffer allocation::TinyAlloc-inlinebuffers",
+      "iterations": 10,
+      "total_us": 452949,
+      "average_us": 45294,
+      "min_us": 42718,
+      "max_us": 47780,
+      "raw_results": [
+        44728,
+        46711,
+        44720,
+        47780,
+        43684,
+        46999,
+        45973,
+        45457,
+        42718,
+        44179
+      ]
+    },
+    {
+      "name": "Vertex buffer allocation::TinyAlloc-inlineelements",
+      "iterations": 10,
+      "total_us": 252054,
+      "average_us": 25205,
+      "min_us": 23952,
+      "max_us": 27427,
+      "raw_results": [
+        25876,
+        24657,
+        24504,
+        24087,
+        27427,
+        25205,
+        25828,
+        24709,
+        23952,
+        25809
+      ]
+    }
+  ],
+  "xemu_tag": "v0.8.13"
+}

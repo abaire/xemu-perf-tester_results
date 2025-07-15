@@ -1,0 +1,191 @@
+{
+  "iso": "xemu-perf-tests-v2025-07-12_20-45-10-665226282.iso",
+  "suite_allowlist": null,
+  "xemu_version": "xemu-0.8.21-master-41ad49c9e9b95bd882e182d5668df7be9b3ba36c",
+  "xemu_machine_info": "xemu_version: 0.8.21\nxemu_branch: master\nxemu_commit: 41ad49c9e9b95bd882e182d5668df7be9b3ba36c\nxemu_date: Wed Mar  5 06:01:19 UTC 2025\nCPU: AMD Ryzen Z1 Extreme                           \nOS_Version:  24H2\nGL_VENDOR: ATI Technologies Inc.\nGL_RENDERER: AMD Radeon Graphics\nGL_VERSION: 4.0.0 Core Profile Context 25.5.1.250417\nGL_SHADING_LANGUAGE_VERSION: 4.60\n         Automatically detecting the format is dangerous for raw images, write operations on block 0 will be restricted.\n         Specify the 'raw' format explicitly to remove the restrictions.\nEnabled instance extensions:\n- VK_KHR_surface\n- VK_KHR_win32_surface\n- VK_KHR_get_physical_device_properties2\n- VK_KHR_external_semaphore_capabilities\n- VK_KHR_external_memory_capabilities\nAvailable physical devices:\n- AMD Radeon Graphics\nSelected physical device: AMD Radeon Graphics\n- Vendor: 1002, Device: 15bf\n- Driver Version: 2.0.342\nEnabled device extensions:\n- VK_KHR_external_semaphore\n- VK_KHR_external_memory\n- VK_KHR_external_memory_win32\n- VK_KHR_external_semaphore_win32\n- VK_EXT_custom_border_color\n- VK_EXT_provoking_vertex\n- VK_EXT_memory_budget\n",
+  "machine_info": {
+    "cpu_manufacturer": "AMD Ryzen Z1 Extreme",
+    "cpu_vendor_id": "AuthenticAMD",
+    "cpu_stepping": 1,
+    "cpu_model": 116,
+    "cpu_family": 25,
+    "cpu_cores": 8,
+    "hw_threads": 16,
+    "os_system": "Windows",
+    "os_release": "10",
+    "os_version": "10.0.26100",
+    "os_machine_type": "AMD64",
+    "cpu_freq_max": 3301.0,
+    "os_win_edition": "Core",
+    "os_win_version": [
+      "10",
+      "10.0.26100",
+      "SP0",
+      "Multiprocessor Free"
+    ]
+  },
+  "renderer": "VK",
+  "results": [
+    {
+      "name": "Vertex buffer allocation::MixedVtxAlloc-arrays",
+      "iterations": 10,
+      "total_us": 1244087,
+      "average_us": 124408,
+      "min_us": 121872,
+      "max_us": 127936,
+      "raw_results": [
+        123237,
+        125362,
+        123272,
+        124415,
+        125220,
+        122180,
+        121872,
+        127936,
+        123612,
+        126981
+      ]
+    },
+    {
+      "name": "Vertex buffer allocation::MixedVtxAlloc-inlinearrays",
+      "iterations": 10,
+      "total_us": 1437395,
+      "average_us": 143739,
+      "min_us": 136835,
+      "max_us": 153917,
+      "raw_results": [
+        153917,
+        146599,
+        136835,
+        143057,
+        140972,
+        142182,
+        145836,
+        145170,
+        142341,
+        140486
+      ]
+    },
+    {
+      "name": "Vertex buffer allocation::MixedVtxAlloc-inlinebuffers",
+      "iterations": 10,
+      "total_us": 5672176,
+      "average_us": 567217,
+      "min_us": 558451,
+      "max_us": 577846,
+      "raw_results": [
+        566419,
+        570510,
+        558451,
+        563914,
+        562006,
+        560841,
+        577846,
+        564637,
+        572853,
+        574699
+      ]
+    },
+    {
+      "name": "Vertex buffer allocation::MixedVtxAlloc-inlineelements",
+      "iterations": 10,
+      "total_us": 1340971,
+      "average_us": 134097,
+      "min_us": 131700,
+      "max_us": 136312,
+      "raw_results": [
+        134285,
+        135492,
+        132889,
+        133634,
+        133000,
+        136312,
+        134235,
+        133516,
+        135908,
+        131700
+      ]
+    },
+    {
+      "name": "Vertex buffer allocation::TinyAlloc-arrays",
+      "iterations": 10,
+      "total_us": 1875666,
+      "average_us": 187566,
+      "min_us": 167269,
+      "max_us": 201285,
+      "raw_results": [
+        194435,
+        185453,
+        191594,
+        201285,
+        192010,
+        181414,
+        183990,
+        197487,
+        180729,
+        167269
+      ]
+    },
+    {
+      "name": "Vertex buffer allocation::TinyAlloc-inlinearrays",
+      "iterations": 10,
+      "total_us": 1975679,
+      "average_us": 197567,
+      "min_us": 188746,
+      "max_us": 207149,
+      "raw_results": [
+        188780,
+        201070,
+        195852,
+        207149,
+        192349,
+        197288,
+        196990,
+        188746,
+        203567,
+        203888
+      ]
+    },
+    {
+      "name": "Vertex buffer allocation::TinyAlloc-inlinebuffers",
+      "iterations": 10,
+      "total_us": 2258105,
+      "average_us": 225810,
+      "min_us": 215888,
+      "max_us": 239111,
+      "raw_results": [
+        219505,
+        220542,
+        225098,
+        215888,
+        230098,
+        225585,
+        219671,
+        239111,
+        227770,
+        234837
+      ]
+    },
+    {
+      "name": "Vertex buffer allocation::TinyAlloc-inlineelements",
+      "iterations": 10,
+      "total_us": 1651464,
+      "average_us": 165146,
+      "min_us": 162268,
+      "max_us": 172232,
+      "raw_results": [
+        172232,
+        167746,
+        163265,
+        164068,
+        162759,
+        165532,
+        164394,
+        164107,
+        165093,
+        162268
+      ]
+    }
+  ],
+  "xemu_tag": "v0.8.21"
+}
