@@ -30,7 +30,7 @@ jobs:
         python-version: [ "3.10", "3.11", "3.12" ]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
@@ -54,7 +54,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Look for disallowed methods
         run: |
@@ -70,7 +70,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Biome
         uses: biomejs/setup-biome@v2
@@ -93,7 +93,7 @@ jobs:
     name: Regenerate the results site
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Set up Python 3.13
         uses: actions/setup-python@v5
@@ -118,7 +118,7 @@ jobs:
     needs: [build-site]
     steps:
       - name: Clone tree
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Update pages_deploy branch
         run: |
