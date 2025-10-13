@@ -67,7 +67,7 @@ If you do not use Visual Studio:
    REM should print 3.10.something
    
    python.exe -m venv venv
-   "venv\Scripts\pip.exe" install -r requirements.txt
+   venv\Scripts\pip.exe install -r requirements.txt
    ````
 
 ### Maintenance setup
