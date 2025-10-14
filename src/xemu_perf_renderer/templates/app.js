@@ -883,7 +883,7 @@ export function initializeApp(loadedData, testSuiteDescriptors) {
     return ret;
   }
 
-  function renderSummaryChart(scheme, processedData) {
+  function renderSummaryChart(selectedSchemeKey, scheme, processedData) {
     if (!scheme) {
       throw Error("renderSummaryChart called with invalid scheme");
     }
@@ -892,9 +892,14 @@ export function initializeApp(loadedData, testSuiteDescriptors) {
 
     const means = {};
     for (const d of processedData) {
-      const category = d[scheme.field];
+      const raw_category = d[scheme.field];
+      const category =
+        selectedSchemeKey === "by-version"
+          ? raw_category.compare_name
+          : raw_category;
       if (!means[category]) {
         means[category] = {
+          raw_category: raw_category,
           total_us: 0,
           count: 0,
           machine_ids: new Set(),
@@ -905,14 +910,18 @@ export function initializeApp(loadedData, testSuiteDescriptors) {
       means[category].machine_ids.add(d.machine_id);
     }
 
-    const summaryData = Object.entries(means).map(([category, totals]) => {
-      return {
-        category: category,
-        score: totals.total_us / totals.count / 1000.0,
-        points: totals.count,
-        uniqueMachineCount: totals.machine_ids.size,
-      };
-    });
+    const summaryData = Object.entries(means)
+      .map(([category, totals]) => {
+        return {
+          category: category,
+          tickval: category,
+          ticktext: totals.raw_category.toString(),
+          score: totals.total_us / totals.count / 1000.0,
+          points: totals.count,
+          uniqueMachineCount: totals.machine_ids.size,
+        };
+      })
+      .sort();
 
     const summaryStyles = styleSummaries(summaryData);
     const trace = {
@@ -940,6 +949,8 @@ export function initializeApp(loadedData, testSuiteDescriptors) {
       xaxis: {
         ...kCommonXAxisConfig,
         title: scheme.title,
+        tickvals: summaryData.map((d) => d.tickval),
+        ticktext: summaryData.map((d) => d.ticktext),
       },
       yaxis: { ...kCommonYAxisConfig, title: "Sum of averages" },
       hoverlabel: kTooltipConfig,
@@ -1134,7 +1145,7 @@ export function initializeApp(loadedData, testSuiteDescriptors) {
         negativeFilters.length > 0
       )
     ) {
-      renderSummaryChart(scheme, processedData);
+      renderSummaryChart(selectedSchemeKey, scheme, processedData);
     }
     renderTestResultCharts(
       selectedSchemeKey,
