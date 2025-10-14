@@ -832,9 +832,9 @@ export function initializeApp(loadedData, testSuiteDescriptors) {
 
     const chips = params.getAll("df");
     if (chips.length > 0) {
-      chips.forEach((chipText) =>
-        createDataFilterChip(chipText, handleFilterChange),
-      );
+      chips.forEach((chipText) => {
+        createDataFilterChip(chipText, handleFilterChange);
+      });
     }
 
     const start = params.get("rangeStart");
