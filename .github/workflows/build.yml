@@ -128,7 +128,7 @@ jobs:
           git checkout pages_deploy || git checkout -b pages_deploy
           git reset --hard main
 
-      - uses: actions/download-artifact@v6
+      - uses: actions/download-artifact@v7
         with:
           name: site
           path: docs
