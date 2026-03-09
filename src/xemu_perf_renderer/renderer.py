@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-# ruff: noqa: T201 `print` found
 # ruff: noqa: PLR2004 Magic value used in comparison
 
 from __future__ import annotations
