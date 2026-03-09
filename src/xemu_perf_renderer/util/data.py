@@ -10,10 +10,12 @@ from dataclasses import dataclass
 from enum import StrEnum
 from typing import Any
 
+_GITHASHSTRING = r"[a-f0-9]+"
 _XEMU_VERSION_CAPTURE = r"(\d+)\.(\d+)\.(\d+)"
 # xemu-0.8.92-master-<githash>
 # xemu-0.8.53-master-5685a6290cfbf7b022ec5e58a8ffb09f664c04e8
-_XEMU_RELEASE_VERSION_RE = re.compile(r"xemu-" + _XEMU_VERSION_CAPTURE + r"-master-(.*)")
+# xemu-0.8.134-fc9980d2962cbec656253106ea2e121fab1e68d4
+_XEMU_RELEASE_VERSION_RE = re.compile(r"xemu-" + _XEMU_VERSION_CAPTURE + r"(?:-master)?-(" + _GITHASHSTRING + ")$")
 
 # xemu-0.8.92-6-gdf22bfacd8- -df22bfacd83f6256f0fe52adfc3eb3cb7e3a4f54
 # xemu-0.8.92-<build>-g<shorthash>-<branch_name>-<githash>
