@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+# ruff: noqa: PLC0415 `import` should be at the top-level of a file
 import json
 import logging
 from typing import Any, NamedTuple
