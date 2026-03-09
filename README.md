@@ -86,6 +86,17 @@ git checkout main
 git pull
 ```
 
+You may also have to update the existing venv:
+
+```shell
+# Windows
+"venv\Scripts\pip.exe" install -r requirements.txt
+
+# Linux/macOS
+./venv/bin/pip3 install -r requirements.txt
+
+```
+
 ## Run the tests
 
 ### Windows
