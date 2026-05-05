@@ -32,10 +32,10 @@ ECHO Please upgrade your Python installation.
 EXIT /B 1
 :VERSION_PASS
 
-IF NOT EXIST "venv\" (
+IF NOT EXIST "%~dp0venv\" (
     ECHO Creating Python virtual environment...
 
-    python -m venv venv
+    python -m venv "%~dp0venv"
     IF %ERRORLEVEL% NEQ 0 (
         ECHO ERROR: Failed to create virtual environment.
         ECHO Make sure Python is installed and accessible in your PATH.
@@ -44,7 +44,7 @@ IF NOT EXIST "venv\" (
 
     ECHO Installing required packages from requirements.txt...
 
-    "venv\Scripts\pip.exe" install -r requirements.txt
+    "%~dp0venv\Scripts\pip.exe" install -r "%~dp0requirements.txt"
     IF %ERRORLEVEL% NEQ 0 (
         ECHO ERROR: Failed to install Python packages.
         EXIT /B 1
@@ -57,8 +57,8 @@ IF NOT EXIST "venv\" (
     EXIT /B 1
 )
 
-CALL "venv\Scripts\activate.bat"
+CALL "%~dp0venv\Scripts\activate.bat"
 
-xemu-perf-run --block-list-file inputs/block_list.json -U %*
+xemu-perf-run --block-list-file "%~dp0inputs\block_list.json" -U %*
 
 ENDLOCAL

@@ -3,9 +3,11 @@
 set -eu
 set -o pipefail
 
-if [[ ! -d venv ]]; then
-  python3 -m venv venv
-  venv/bin/pip3 install -r requirements.txt
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+if [[ ! -d "${SCRIPT_DIR}/venv" ]]; then
+  python3 -m venv "${SCRIPT_DIR}/venv"
+  "${SCRIPT_DIR}/venv/bin/pip3" install -r "${SCRIPT_DIR}/requirements.txt"
 
   echo "Run xemu-perf-run --import-install <path_to_your_xemu_toml_file>"
   exit 1
@@ -15,4 +17,4 @@ if [[ -n "${XEMU_DYLD_FALLBACK_LIBRARY_PATH-}" ]]; then
   export DYLD_FALLBACK_LIBRARY_PATH="${XEMU_DYLD_FALLBACK_LIBRARY_PATH}"
 fi
 
-./venv/bin/xemu-perf-run --block-list-file inputs/block_list.json -U "$@"
+"${SCRIPT_DIR}/venv/bin/xemu-perf-run" --block-list-file "${SCRIPT_DIR}/inputs/block_list.json" -U "$@"
