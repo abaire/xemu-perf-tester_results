@@ -1,11 +1,6 @@
 name: Regenerate Site
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'results/**'
   workflow_run:
     workflows: ["Build and Validate Source"]
     types: [completed]
