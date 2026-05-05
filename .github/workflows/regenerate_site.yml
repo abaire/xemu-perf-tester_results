@@ -1,0 +1,79 @@
+name: Regenerate Site
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'results/**'
+  workflow_run:
+    workflows: ["Build and Validate Source"]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: regenerate-site
+  cancel-in-progress: false
+
+jobs:
+
+  build-site:
+    name: Regenerate the results site
+    runs-on: ubuntu-latest
+    if: >
+      github.event_name != 'workflow_run' ||
+      github.event.workflow_run.conclusion == 'success'
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+
+      - name: Generate site
+        run: |
+          pip3 install --break-system-packages .
+          xemu-perf-render results -o site
+
+      - name: Upload site artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: site
+          path: site
+
+  deploy-site:
+    name: Update the pages site with new content
+    runs-on: ubuntu-latest
+    needs: [build-site]
+    steps:
+      - name: Clone tree
+        uses: actions/checkout@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Update pages_deploy branch
+        run: |
+          git fetch origin --no-recurse-submodules
+          git checkout main
+          git pull
+          git checkout pages_deploy || git checkout -b pages_deploy
+          git reset --hard main
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: site
+          path: docs
+
+      - name: Commit and push site changes
+        run: |
+          git add docs
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git commit -m "Update site content" || echo "No changes to commit"
+          git push --set-upstream origin pages_deploy -f

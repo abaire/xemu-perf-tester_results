@@ -1,18 +1,16 @@
-name: Build site
+name: Build and Validate Source
 
 on:
   push:
     branches:
       - main
-    paths-ignore:
-      - '.github/**'
-      - '!.github/workflows/**'
+    paths:
+      - 'src/**'
+      - '.github/workflows/build.yml'
   pull_request:
-    paths-ignore:
-      - '.github/**'
-      - '!.github/workflows/**'
-  release:
-    types: [ published ]
+    paths:
+      - 'src/**'
+      - '.github/workflows/build.yml'
   workflow_dispatch:
 
 concurrency:
@@ -88,56 +86,3 @@ jobs:
 
       - name: Run Biome CI check
         run: biome ci src/xemu_perf_renderer/templates
-
-  build-site:
-    name: Regenerate the results site
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-
-      - name: Set up Python 3.13
-        uses: actions/setup-python@v6
-        with:
-          python-version: 3.13
-
-      - name: Generate site
-        run: |
-          pip3 install --break-system-packages .
-          xemu-perf-render results -o site
-
-      - name: Upload site artifact
-        uses: actions/upload-artifact@v7
-        with:
-          name: site
-          path: site
-
-  deploy-site:
-    name: Update the pages site with new content
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    needs: [build-site]
-    steps:
-      - name: Clone tree
-        uses: actions/checkout@v6
-
-      - name: Update pages_deploy branch
-        run: |
-          git fetch origin --no-recurse-submodules
-          git checkout main
-          git pull
-          git checkout pages_deploy || git checkout -b pages_deploy
-          git reset --hard main
-
-      - uses: actions/download-artifact@v8
-        with:
-          name: site
-          path: docs
-
-      - name: Add and commit site changes
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        run: |
-          git add docs
-          git config --local user.email "$GITHUB_ACTOR+github-actions@users.noreply.github.com"
-          git config --local user.name "$GITHUB_ACTOR via action"
-          git commit -m "Update site content" || echo "No changes to commit"
-          git push --set-upstream origin pages_deploy -f

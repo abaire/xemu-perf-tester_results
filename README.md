@@ -7,6 +7,10 @@ Archived performance tester results for [xemu](https://xemu.app)
 
 # Submitting results
 
+Results are submitted automatically by the
+[xemu-perf-tester](https://github.com/abaire/xemu-perf-tester) tool via the
+GitHub API. No fork, clone, or pull request is required.
+
 ## Setup
 
 Note: In the examples below, things surrounded by angle brackets (e.g.,
@@ -14,97 +18,58 @@ Note: In the examples below, things surrounded by angle brackets (e.g.,
 
 ### One time setup
 
-1. Install `git` if needed (E.g., from https://git-scm.com/downloads)
-1. Fork this repository using the "Fork" button near the top of this GitHub
-   page.
-   See [the GitHub instructions](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo)
-   if needed.
-1. [Clone your fork locally](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo#cloning-your-forked-repository)
-    ```shell
-   cd <someplace>
-   git clone git@github.com:<your_github_username>/xemu-perf-tester_results.git --depth 1
-    ```
-
-#### Set up your local environment
-
-Read the README.md in the `inputs` directory or use the `run.sh`/`run.bat`
-script with `--import-install` to copy files from your working xemu
-installation. Note: The path to the xemu.toml file is printed to the console and
-xemu.log by xemu when it starts.
-
-```shell
-cd <someplace>/xemu-perf-tester_results
-
-# Windows
-run.bat --import-install <path_to_xemu_toml_file>
-# Linux/macOS
-run.sh --import-install <path_to_xemu_toml_file>
-```
+1. Download the latest scripts for your platform from the
+   [Releases page](https://github.com/abaire/xemu-perf-tester_results/releases/latest):
+   - **Windows**: `xemu-perf-tester-scripts-windows.zip`
+   - **macOS**: `xemu-perf-tester-scripts-macos.zip`
+   - **Linux**: `xemu-perf-tester-scripts-linux.zip`
+1. Extract the archive to a directory of your choice (e.g., `<someplace>/xemu-perf-tester`).
 
 #### Install Python (if needed)
 
 ##### Windows
 
-At the moment only Python 3.10 is supported without a full development
-environment.
+Python 3.10 or higher is required.
 
-If you do not use Visual Studio:
+If you do not have Python installed:
 
 1. Install the latest Python 3.10 release
    from https://www.python.org/downloads/windows/
 2. Open up a `cmd.exe` shell and `cd` into the directory containing this file,
-   then set up a virtualenv using Python 3.10.
+   then run the setup:
 
    ```shell
-   cd <someplace>/xemu-perf-tester_results
-   
+   cd <someplace>/xemu-perf-tester
    python.exe --version
-   REM If this does not print something like `Python 3.10`, you will need to
-   REM provide a full path to Python. 
-   REM For example, the default install of Python 3.10.x is at 
+   REM If this does not print something like `Python 3.10` or higher, you will
+   REM need to provide a full path to Python.
+   REM For example, the default install of Python 3.10.x is at
    REM   %LOCALAPPDATA%\Programs\Python\Python310\python.exe
-   REM so `%LOCALAPPDATA%\Programs\Python\Python310\python.exe --version`
-   REM should print 3.10.something
-   
-   python.exe -m venv venv
-   venv\Scripts\pip.exe install -r requirements.txt
-   ````
+   ```
 
-### Maintenance setup
+#### Set up your local environment
 
-The tools in this repository may be updated from time to time, so it is a good
-idea to
-[sync your fork](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/syncing-a-fork)
-regularly.
-
-After syncing, you will need to pull the latest changes to your local machine:
+Use the `run.sh`/`run.bat` script with `--import-install` to copy files from
+your working xemu installation. Note: The path to the xemu.toml file is printed
+to the console and `xemu.log` by xemu when it starts.
 
 ```shell
-cd <someplace>/xemu-perf-tester_results
+cd <someplace>/xemu-perf-tester
 
-git checkout main
-git pull
-```
-
-You may also have to update the existing venv:
-
-```shell
 # Windows
-"venv\Scripts\pip.exe" install -r requirements.txt
-
+run.bat --import-install <path_to_xemu_toml_file>
 # Linux/macOS
-./venv/bin/pip3 install -r requirements.txt
-
+./run.sh --import-install <path_to_xemu_toml_file>
 ```
 
 ## Run the tests
 
 ### Windows
 
-Open up a `cmd.exe` shell and `cd` into the directory containing this file.
+Open up a `cmd.exe` shell and `cd` into the directory containing the scripts.
 
 ```shell
-cd <someplace>/xemu-perf-tester_results
+cd <someplace>/xemu-perf-tester
 
 rem Default - run using the OpenGL backend
 run.bat
@@ -116,13 +81,13 @@ run.bat --use-vulkan
 #### Running with a specific official xemu release
 
 ```shell
-cd <someplace>/xemu-perf-tester_results
+cd <someplace>/xemu-perf-tester
 run.bat --xemu-tag <release>
 
 # E.g., run.bat --xemu-tag v0.8.90
 ```
 
-`--xemu_tag` accepts:
+`--xemu-tag` accepts:
 
 - a xemu release version (e.g., `v0.8.92`)
 - the URL of a build action (e.g.,
@@ -139,14 +104,14 @@ using the `--github-token` argument. See `--help` for details.
 1. Build xemu (or download a PR artifact)
 1. Use the `--xemu` option to specify the path to the xemu executable
     ```shell
-    cd <someplace>/xemu-perf-tester_results
+    cd <someplace>/xemu-perf-tester
     run.bat -X <path/to/xemu>
     ```
 
 ### Linux/macOS
 
 ```shell
-cd <someplace>/xemu-perf-tester_results
+cd <someplace>/xemu-perf-tester
 # Default - run using the OpenGL backend
 ./run.sh
 
@@ -157,13 +122,13 @@ cd <someplace>/xemu-perf-tester_results
 #### Running with a specific official xemu release
 
 ```shell
-cd <someplace>/xemu-perf-tester_results
+cd <someplace>/xemu-perf-tester
 ./run.sh --xemu-tag <release>
 
 # E.g., ./run.sh --xemu-tag v0.8.90
 ```
 
-`--xemu_tag` accepts:
+`--xemu-tag` accepts:
 
 - a xemu release version (e.g., `v0.8.92`)
 - the URL of a build action (e.g.,
@@ -179,7 +144,7 @@ the `--github-token` argument. See `--help` for details.
 1. Build xemu (or download a PR artifact)
 1. Use the `--xemu` option to specify the path to the xemu executable
     ```shell
-    cd <someplace>/xemu-perf-tester_results
+    cd <someplace>/xemu-perf-tester
     ./run.sh -X <path/to/xemu>
     ```
 
@@ -198,27 +163,11 @@ XEMU_DYLD_FALLBACK_LIBRARY_PATH=<path_to_xemu_repo>/dist/xemu.app/Contents/Libra
 
 ## Submit your results
 
-1. Commit the results to your fork
-   ```shell
-   cd <someplace>/xemu-perf-tester_results
-   
-   # Checkout a new branch
-   git checkout -b my_results
-   
-   # Add the new results
-   git add results
-   
-   # Commit the change
-   git commit -m "Adds new benchmark results"
-   
-   # Push the change
-   git push -u origin my_results
-   ```
+Results are submitted automatically at the end of a test run via the GitHub API.
+The tool will open a GitHub issue in this repository on your behalf containing
+the benchmark data, which is then ingested automatically by a CI workflow.
 
-   The final command should print out a URL that you may open in a browser to
-   create a pull request to submit your results.
-1. [Create a pull request (PR)](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request-from-a-fork)
-   to add them to the primary repository.
+The tool may ask you to open a browser and authenticate a token the first time you run it (and occasionally thereafter). This allows the script to post a GitHub issue to this repository on your behalf along with your benchmark results.
 
 # Development
 
