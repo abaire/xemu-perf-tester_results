@@ -1,0 +1,72 @@
+name: Release User Scripts
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'user_scripts/**'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Create platform script archives and release
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Compute release tag
+        id: tag
+        run: |
+          BASE_TAG="user-scripts-$(date -u '+%Y%m%d')"
+          # Find the next available suffix for today
+          EXISTING=$(git ls-remote --tags origin "refs/tags/${BASE_TAG}*" | awk '{print $2}' | sed 's|refs/tags/||')
+          if [ -z "$EXISTING" ]; then
+            TAG="${BASE_TAG}"
+          else
+            MAX=0
+            while IFS= read -r t; do
+              SUFFIX="${t#${BASE_TAG}}"
+              if [[ "$SUFFIX" =~ ^-([0-9]+)$ ]]; then
+                N="${BASH_REMATCH[1]}"
+                [ "$N" -gt "$MAX" ] && MAX="$N"
+              fi
+            done <<< "$EXISTING"
+            TAG="${BASE_TAG}-$((MAX + 1))"
+          fi
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "Using release tag: ${TAG}"
+
+      - name: Build Windows archive
+        run: |
+          mkdir -p dist
+          cd user_scripts
+          zip ../dist/xemu-perf-tester-scripts-windows.zip run.bat bulk_run.bat requirements.txt
+
+      - name: Build macOS archive
+        run: |
+          mkdir -p dist
+          cd user_scripts
+          zip ../dist/xemu-perf-tester-scripts-macos.zip run.sh bulk_run.sh requirements.txt
+
+      - name: Build Linux archive
+        run: |
+          mkdir -p dist
+          cd user_scripts
+          zip ../dist/xemu-perf-tester-scripts-linux.zip run.sh bulk_run.sh requirements.txt
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag.outputs.tag }}
+          name: User Scripts ${{ steps.tag.outputs.tag }}
+          body: Automated release of user scripts from commit ${{ github.sha }}.
+          make_latest: true
+          files: |
+            dist/xemu-perf-tester-scripts-windows.zip
+            dist/xemu-perf-tester-scripts-macos.zip
+            dist/xemu-perf-tester-scripts-linux.zip
