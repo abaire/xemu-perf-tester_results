@@ -29,11 +29,11 @@ Note: In the examples below, things surrounded by angle brackets (e.g.,
 
 ##### Windows
 
-Python 3.10 or higher is required.
+Python 3.10 or higher is required. If you do not have a developer environment (including CMake) you will need to match the version of Python used by pyfatx. Check around https://github.com/mborgerson/fatx/blob/master/.github/workflows/build.yml#L165
 
 If you do not have Python installed:
 
-1. Install the latest Python 3.10 release
+1. Install the latest Python 3.13 release
    from https://www.python.org/downloads/windows/
 2. Open up a `cmd.exe` shell and `cd` into the directory containing this file,
    then run the setup:
