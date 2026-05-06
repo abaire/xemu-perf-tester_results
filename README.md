@@ -161,6 +161,10 @@ XEMU_DYLD_FALLBACK_LIBRARY_PATH=<path_to_xemu_repo>/dist/xemu.app/Contents/Libra
   ./run.sh -X <path_to_xemu_repo>/build/qemu-system-i386 --no-bundle
 ```
 
+### Running for multiple xemu versions
+
+The "bulk_run.sh"/"bulk_run.bat" is a trivial helper that will run the tests for a number of xemu versions. You edit the file and change/add to the versions it executes.
+
 ## Submit your results
 
 Results are submitted automatically at the end of a test run via the GitHub API.
