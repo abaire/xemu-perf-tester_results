@@ -239,6 +239,7 @@ class FlatResults:
                     "gpu_renderer": _patch_gpu_renderer(result["gpu_renderer"], machine_info["cpu_manufacturer"]),
                     "machine_id": result["machine_id"],
                     "machine_id_with_renderer": result["machine_id_with_renderer"],
+                    "display_refresh_rate_hz": result.get("display_refresh_rate_hz"),
                 }
 
                 raw_results = sorted(test_result.get("raw_results", []))
