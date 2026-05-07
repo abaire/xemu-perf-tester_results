@@ -311,6 +311,9 @@ function buildCustomData(machineData) {
     Number.isNaN(d.adjusted_min_ms) ? "??" : d.adjusted_min_ms,
     Number.isNaN(d.adjusted_max_ms) ? "No range data" : d.adjusted_max_ms,
     tagInfo(d),
+    d.display_refresh_rate_hz != null
+      ? `Display ${d.display_refresh_rate_hz} Hz<br>`
+      : "",
   ]);
 }
 
@@ -322,6 +325,7 @@ function buildHoverTemplate() {
     "CPU     %{customdata[2]} [%{customdata[8]}]<br>" +
     "GPU     %{customdata[3]}<br>" +
     "Backend %{customdata[4]}<br>" +
+    "%{customdata[12]}" +
     "%{customdata[9]} - %{customdata[10]}<br>" +
     "%{customdata[7]}<br>" +
     "%{customdata[5]}<br>" +
