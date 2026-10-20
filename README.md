@@ -180,8 +180,10 @@ run_pr.bat https://github.com/xemu-project/xemu/pull/3088
 The build artifact for your platform is taken from the newest successful `CI`
 workflow run for the PR's head commit. The script fails if there is no such
 build (e.g., CI is still running, failed, or the artifacts have expired).
-Downloading artifacts uses the same GitHub authorization as result submission,
-so no personal access token is needed.
+No personal access token is needed to download artifacts: if the
+[GitHub CLI](https://cli.github.com/) (`gh`) is installed and logged in, its
+credentials are used; otherwise the same GitHub authorization as result
+submission is used.
 
 PR results are stored separately from release results, under
 `dev_results/pr-<number>/`, and each PR gets a
