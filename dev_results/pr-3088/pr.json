@@ -1,0 +1,12 @@
+{
+  "repo": "xemu-project/xemu",
+  "pr_number": 3088,
+  "pr_url": "https://github.com/xemu-project/xemu/pull/3088",
+  "pr_title": "Fix 1852 nv2a vsh cpu based register carryover",
+  "head_ref": "fix_1852_nv2a_vsh_cpu_based_register_carryover",
+  "head_sha": "ffce6589c806fab529e2063b5d818e82d03f68da",
+  "run_id": 39458043954,
+  "run_url": "https://github.com/xemu-project/xemu/actions/runs/39458043954",
+  "base_version": "0.8.138",
+  "last_updated": "2026-10-20T17:29:10+00:00"
+}
