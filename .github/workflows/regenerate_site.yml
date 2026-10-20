@@ -33,7 +33,7 @@ jobs:
       - name: Generate site
         run: |
           pip3 install --break-system-packages .
-          xemu-perf-render results -o site
+          xemu-perf-render results --dev-results dev_results -o site
 
       - name: Upload site artifact
         uses: actions/upload-artifact@v7

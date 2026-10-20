@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>xemu PR perf comparisons</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>{% include "pr_common_style.css.jinja2" %}</style>
+</head>
+<body>
+<p><a href="../">&larr; All results</a></p>
+<h1>xemu PR perf comparisons</h1>
+<p class="muted">
+    Results from xemu pull request / CI builds, compared against the release each build is based on.
+    Changes beyond {{ "%.0f" | format(threshold * 100) }}% are highlighted.
+</p>
+{% if comparisons %}
+<div class="table-wrap">
+<table>
+    <thead>
+    <tr><th>Build</th><th>Source</th><th class="num">Machines</th><th>Last updated</th></tr>
+    </thead>
+    <tbody>
+    {% for results_set in comparisons %}
+    <tr>
+        <td><a href="{{ results_set.key }}/">{{ results_set.title }}</a></td>
+        <td>
+            {% if results_set.metadata.pr_url %}<a href="{{ results_set.metadata.pr_url }}">{{ results_set.metadata.repo or "PR" }}</a>
+            {% elif results_set.metadata.run_url %}<a href="{{ results_set.metadata.run_url }}">{{ results_set.metadata.repo or "run" }}</a>
+            {% endif %}
+        </td>
+        <td class="num">{{ results_set.machine_count }}</td>
+        <td>{{ results_set.metadata.last_updated or "" }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+</div>
+{% else %}
+<p>No development results have been submitted.</p>
+{% endif %}
+</body>
+</html>

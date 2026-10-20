@@ -95,9 +95,7 @@ run.bat --xemu-tag <release>
 - the URL of a pull request (PR) (e.g.,
   `https://github.com/xemu-project/xemu/pull/2329`).
 
-The action and PR options additionally require you to pass a
-[GitHub personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-fine-grained-personal-access-token)
-using the `--github-token` argument. See `--help` for details.
+For PRs and actions, see [Testing a xemu pull request](#testing-a-xemu-pull-request).
 
 #### Running with a development / PR build
 
@@ -136,8 +134,7 @@ cd <someplace>/xemu-perf-tester
 - the URL of a pull request (PR) (e.g.,
   `https://github.com/xemu-project/xemu/pull/2329`).
 
-The action and PR options additionally require you to pass a GitHub token using
-the `--github-token` argument. See `--help` for details.
+For PRs and actions, see [Testing a xemu pull request](#testing-a-xemu-pull-request).
 
 #### Running with a development / PR build
 
@@ -159,6 +156,49 @@ itself.
 ```shell
 XEMU_DYLD_FALLBACK_LIBRARY_PATH=<path_to_xemu_repo>/dist/xemu.app/Contents/Libraries/arm64 \
   ./run.sh -X <path_to_xemu_repo>/build/qemu-system-i386 --no-bundle
+```
+
+### Testing a xemu pull request
+
+`run_pr.sh`/`run_pr.bat` benchmark the CI build of one or more xemu pull
+requests so you can see whether a pending change affects performance. Both the
+OpenGL and (except on macOS) Vulkan backends are tested.
+
+```shell
+cd <someplace>/xemu-perf-tester
+
+# Windows
+run_pr.bat https://github.com/xemu-project/xemu/pull/3088
+# Linux/macOS
+./run_pr.sh https://github.com/xemu-project/xemu/pull/3088
+
+# A bare number refers to a xemu-project/xemu PR, and several may be given.
+# Arguments after "--" are passed through to run.sh/run.bat.
+./run_pr.sh 3088 3090 -- --just-suites FillRate
+```
+
+The build artifact for your platform is taken from the newest successful `CI`
+workflow run for the PR's head commit. The script fails if there is no such
+build (e.g., CI is still running, failed, or the artifacts have expired).
+Downloading artifacts uses the same GitHub authorization as result submission,
+so no personal access token is needed.
+
+PR results are stored separately from release results, under
+`dev_results/pr-<number>/`, and each PR gets a
+[comparison page](https://abaire.github.io/xemu-perf-tester_results/pr/)
+showing its results next to the release it is based on, from the same machine.
+
+#### Removing PR results
+
+PR results are pruned automatically each week once the PR has been closed for
+14 days. To remove them sooner, run the
+[Manage dev results](https://github.com/abaire/xemu-perf-tester_results/actions/workflows/manage_dev_results.yml)
+workflow with the `remove` action and the PR numbers, or locally:
+
+```shell
+python util/dev_results.py list --check-state
+python util/dev_results.py remove 3088
+python util/dev_results.py prune --closed-older-than 14 --dry-run
 ```
 
 ### Running for multiple xemu versions

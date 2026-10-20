@@ -3,12 +3,15 @@ from __future__ import annotations
 # ruff: noqa: PLR2004 Magic value used in comparison
 import glob
 import json
+import logging
 import os
 import re
 from collections import defaultdict
 from dataclasses import dataclass
 from enum import StrEnum
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 _GITHASHSTRING = r"[a-f0-9]+"
 _XEMU_VERSION_CAPTURE = r"(\d+)\.(\d+)\.(\d+)"
@@ -21,6 +24,15 @@ _XEMU_RELEASE_VERSION_RE = re.compile(r"xemu-" + _XEMU_VERSION_CAPTURE + r"(?:-m
 # xemu-0.8.92-<build>-g<shorthash>-<branch_name>-<githash>
 # xemu-0.8.53-4-g90cfbf-fix_something-90cfbf022ec5e58a8ffb09f664
 _XEMU_DEV_OR_PR_VERSION_RE = re.compile(r"xemu-" + _XEMU_VERSION_CAPTURE + r"-(\d+)-g[^-]+-([^-]+)-(.*)")
+# As above, but anchored on the trailing full git hash so that branch names may contain "-".
+# xemu-0.8.53-4-g90cfbf-fix-something-90cfbf022ec5e58a8ffb09f664c04e8b4a7f0d1e
+_XEMU_DEV_OR_PR_FULL_HASH_VERSION_RE = re.compile(
+    r"xemu-" + _XEMU_VERSION_CAPTURE + r"-(\d+)-g[a-f0-9]+-(.*)-([a-f0-9]{40})$"
+)
+
+# CI builds of PRs do not include a branch name.
+# xemu-0.8.138-9-g7850f6a9f4-7850f6a9f49c44e364ec2488491419e57dc4b6d6
+_XEMU_DEV_NO_BRANCH_VERSION_RE = re.compile(r"xemu-" + _XEMU_VERSION_CAPTURE + r"-(\d+)-g[a-f0-9]+-([a-f0-9]{40})$")
 
 # xemu-0.0.0- -0c24cf3a07ee3962c8d099dc281043eefc8dcf65
 _XEMU_FORK_PR_RE = re.compile(r"xemu-" + _XEMU_VERSION_CAPTURE + r"-\s+-(.*)")
@@ -116,7 +128,9 @@ class _XemuVersionBuilder:
             self.type = XemuVersionType.RELEASE
             return
 
-        match = _XEMU_DEV_OR_PR_VERSION_RE.match(version_string)
+        match = _XEMU_DEV_OR_PR_FULL_HASH_VERSION_RE.match(version_string) or _XEMU_DEV_OR_PR_VERSION_RE.match(
+            version_string
+        )
         if match:
             self.major = int(match.group(1))
             self.minor = int(match.group(2))
@@ -124,6 +138,17 @@ class _XemuVersionBuilder:
             self.build = int(match.group(4))
             self.branch = match.group(5)
             self.git_hash = match.group(6)
+            self.type = XemuVersionType.DEV_OR_PR
+            return
+
+        match = _XEMU_DEV_NO_BRANCH_VERSION_RE.match(version_string)
+        if match:
+            self.major = int(match.group(1))
+            self.minor = int(match.group(2))
+            self.patch = int(match.group(3))
+            self.build = int(match.group(4))
+            self.branch = ""
+            self.git_hash = match.group(5)
             self.type = XemuVersionType.DEV_OR_PR
             return
 
@@ -300,13 +325,23 @@ def load_results(results_dirs: list[str]) -> list[dict[str, Any]]:
 
     for results_dir in results_dirs:
         for result_file in glob.glob("**/*.json", root_dir=results_dir, recursive=True):
-            with open(os.path.join(results_dir, result_file), "rb") as infile:
-                result = json.load(infile)
+            if not result_file.endswith(("-GL.json", "-VK.json")):
+                continue
+            full_path = os.path.join(results_dir, result_file)
+            try:
+                with open(full_path, "rb") as infile:
+                    result = json.load(infile)
+                XemuVersion.parse(result["xemu_version"])
                 _expand_gpu_info(result)
-                # The stable machine ID + renderer backend is the json file without the ".json"
-                result["machine_id_with_renderer"] = os.path.basename(result_file)[:-5]
-                # The renderer backend is one of "-GL" or "-VK"
-                result["machine_id"] = os.path.basename(result_file)[:-8]
-                results.append(result)
+            except (OSError, ValueError, KeyError, TypeError):
+                logger.exception("Skipping invalid result file '%s'", full_path)
+                continue
+
+            result["source_file"] = full_path
+            # The stable machine ID + renderer backend is the json file without the ".json"
+            result["machine_id_with_renderer"] = os.path.basename(result_file)[:-5]
+            # The renderer backend is one of "-GL" or "-VK"
+            result["machine_id"] = os.path.basename(result_file)[:-8]
+            results.append(result)
 
     return results

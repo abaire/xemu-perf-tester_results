@@ -45,19 +45,19 @@ jobs:
         run: |
           mkdir -p dist
           cd user_scripts
-          zip ../dist/xemu-perf-tester-scripts-windows.zip run.bat bulk_run.bat requirements.txt
+          zip ../dist/xemu-perf-tester-scripts-windows.zip run.bat bulk_run.bat run_pr.bat requirements.txt
 
       - name: Build macOS archive
         run: |
           mkdir -p dist
           cd user_scripts
-          zip ../dist/xemu-perf-tester-scripts-macos.zip run.sh bulk_run.sh requirements.txt
+          zip ../dist/xemu-perf-tester-scripts-macos.zip run.sh bulk_run.sh run_pr.sh requirements.txt
 
       - name: Build Linux archive
         run: |
           mkdir -p dist
           cd user_scripts
-          zip ../dist/xemu-perf-tester-scripts-linux.zip run.sh bulk_run.sh requirements.txt
+          zip ../dist/xemu-perf-tester-scripts-linux.zip run.sh bulk_run.sh run_pr.sh requirements.txt
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v3

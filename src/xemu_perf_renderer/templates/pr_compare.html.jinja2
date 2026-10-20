@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ results_set.title }} - xemu perf</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>{% include "pr_common_style.css.jinja2" %}</style>
+</head>
+<body>
+<p><a href="../">&larr; All PR comparisons</a></p>
+<h1>{{ results_set.title }}</h1>
+<p class="muted">
+    {% if results_set.metadata.pr_url %}<a href="{{ results_set.metadata.pr_url }}">{{ results_set.metadata.pr_url }}</a><br>{% endif %}
+    {% if results_set.metadata.head_ref %}Branch: <code>{{ results_set.metadata.head_ref }}</code><br>{% endif %}
+    {% if results_set.metadata.run_url %}Latest CI run: <a href="{{ results_set.metadata.run_url }}">{{ results_set.metadata.run_id }}</a><br>{% endif %}
+    Values are average microseconds per test excluding the max outlier; lower is better.
+    Changes beyond {{ "%.0f" | format(threshold * 100) }}% are highlighted.
+</p>
+
+{% for build in results_set.builds %}
+<section>
+    <h2>
+        <code>{{ build.xemu_version }}</code>
+        {% if build.is_current_head %}<span class="muted">(current head)</span>{% endif %}
+    </h2>
+    {% if build.metadata.head_sha %}<p class="muted">Commit <code>{{ build.metadata.head_sha[:10] }}</code></p>{% endif %}
+
+    {% for machine in build.machines %}
+    <h3>{{ machine.gpu }} &middot; {{ machine.renderer }} &middot; {{ machine.os_system }}</h3>
+    <p class="muted">
+        {{ machine.cpu }}<br>
+        Baseline: {% if machine.baseline_version %}<code>{{ machine.baseline_version }}</code>{% else %}none{% endif %}
+        {% if machine.baseline_note %}<span class="note">({{ machine.baseline_note }})</span>{% endif %}
+    </p>
+    {% if machine.baseline_version %}
+    <p class="summary">
+        <span class="regressed">{{ machine.regressed }} slower</span>
+        <span class="improved">{{ machine.improved }} faster</span>
+        {% if machine.geomean_change is not none %}
+        <span>Geomean change: {{ "%+.1f" | format(machine.geomean_change * 100) }}%</span>
+        {% endif %}
+    </p>
+    {% endif %}
+    <details {% if machine.regressed or machine.improved %}open{% endif %}>
+        <summary>{{ machine.tests | length }} tests</summary>
+        <div class="table-wrap">
+        <table>
+            <thead>
+            <tr><th>Test</th><th class="num">Baseline (us)</th><th class="num">PR (us)</th><th class="num">Change</th></tr>
+            </thead>
+            <tbody>
+            {% for test in machine.tests %}
+            <tr class="{{ test.status }}">
+                <td>{{ test.name }}</td>
+                <td class="num">{% if test.baseline_us is not none %}{{ "%.0f" | format(test.baseline_us) }}{% else %}&ndash;{% endif %}</td>
+                <td class="num">{% if test.dev_us is not none %}{{ "%.0f" | format(test.dev_us) }}{% else %}&ndash;{% endif %}</td>
+                <td class="num change">{% if test.change is not none %}{{ "%+.1f" | format(test.change * 100) }}%{% else %}&ndash;{% endif %}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        </div>
+    </details>
+    {% endfor %}
+</section>
+{% endfor %}
+</body>
+</html>
