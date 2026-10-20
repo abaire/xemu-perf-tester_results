@@ -1,0 +1,102 @@
+name: Manage dev results
+
+on:
+  schedule:
+    # Weekly on Monday.
+    - cron: '17 6 * * 1'
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'What to do with development (PR/CI build) results'
+        required: true
+        default: list
+        type: choice
+        options:
+          - list
+          - remove
+          - prune
+      targets:
+        description: 'For "remove": space separated PR numbers or keys (e.g. "3088 run-1234")'
+        required: false
+        default: ''
+      closed_older_than_days:
+        description: 'For "prune": remove PRs closed more than this many days ago'
+        required: false
+        default: '14'
+      dry_run:
+        description: 'Only print what would be removed'
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  actions: write
+  contents: write
+
+concurrency:
+  group: manage-dev-results
+  cancel-in-progress: false
+
+jobs:
+  manage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.x'
+
+      - name: Run
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ACTION: ${{ github.event_name == 'schedule' && 'prune' || inputs.action }}
+          TARGETS: ${{ inputs.targets }}
+          DAYS: ${{ inputs.closed_older_than_days || '14' }}
+          DRY_RUN: ${{ inputs.dry_run && '--dry-run' || '' }}
+        run: |
+          case "${ACTION}" in
+            list)
+              python util/dev_results.py list --check-state
+              ;;
+            remove)
+              if [[ -z "${TARGETS}" ]]; then
+                echo "::error::'targets' is required for remove"
+                exit 1
+              fi
+              # shellcheck disable=SC2086 # Intentional word splitting of targets.
+              python util/dev_results.py remove ${DRY_RUN} ${TARGETS}
+              ;;
+            prune)
+              python util/dev_results.py prune ${DRY_RUN} --closed-older-than "${DAYS}"
+              ;;
+            *)
+              echo "::error::Unknown action ${ACTION}"
+              exit 1
+              ;;
+          esac
+
+      - name: Commit and push
+        id: push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A dev_results/ 2>/dev/null || true
+
+          if ! git diff --staged --quiet; then
+            git commit -m "Remove development results (${{ github.event_name == 'schedule' && 'scheduled prune' || inputs.action }})"
+            git push
+            echo "pushed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "No changes to commit."
+            echo "pushed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Trigger site regeneration
+        if: steps.push.outputs.pushed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh workflow run regenerate_site.yml --ref main

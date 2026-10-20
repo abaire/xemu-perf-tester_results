@@ -17,6 +17,7 @@ from typing import Any
 
 from jinja2 import Environment, FileSystemLoader
 
+from xemu_perf_renderer.compare import DEFAULT_CHANGE_THRESHOLD, build_comparisons, render_comparisons
 from xemu_perf_renderer.util.data import FlatResults, load_results
 from xemu_perf_renderer.util.test_suite_descriptor_loader import TestSuiteDescriptor, TestSuiteDescriptorLoader
 
@@ -104,6 +105,7 @@ class FlatResultsRenderer(FlatResults):
         local_site_mode: bool = False,
         test_suite_descriptors: dict[str, Any] | None = None,
         source_repo_url_prefix: str | None = None,
+        has_dev_results: bool = False,
     ):
         env = _get_jinja2_env()
 
@@ -131,6 +133,7 @@ class FlatResultsRenderer(FlatResults):
         template_context = {
             "title": "xemu perf tester results",
             "results_filename": results_filename,
+            "has_dev_results": has_dev_results,
             "test_suite_descriptors": {
                 key: _flatten_test_suite_descriptor(value, source_repo_url_prefix)
                 for key, value in test_suite_descriptors.items()
@@ -202,6 +205,17 @@ def entrypoint():
         help="URL at which the test suite source files may be accessed.",
     )
 
+    parser.add_argument(
+        "--dev-results",
+        help="Path to the root of development (PR/CI build) results. Generates comparison pages under pr/.",
+    )
+    parser.add_argument(
+        "--compare-threshold",
+        type=float,
+        default=DEFAULT_CHANGE_THRESHOLD,
+        help="Fractional change beyond which PR comparison results are highlighted.",
+    )
+
     args = parser.parse_args()
 
     log_level = logging.DEBUG if args.verbose else logging.INFO
@@ -219,15 +233,26 @@ def entrypoint():
         else {}
     )
 
-    results = FlatResultsRenderer(load_results(result_paths))
+    release_results = load_results(result_paths)
+    results = FlatResultsRenderer(release_results)
 
     output_dir = os.path.abspath(os.path.expanduser(args.output_dir))
+
+    dev_results_path = os.path.abspath(os.path.expanduser(args.dev_results)) if args.dev_results else None
+    if dev_results_path and not os.path.isdir(dev_results_path):
+        logger.warning("Dev results directory '%s' does not exist, skipping PR comparisons", dev_results_path)
+        dev_results_path = None
+    if dev_results_path:
+        comparisons = build_comparisons(release_results, dev_results_path, args.compare_threshold)
+        render_comparisons(_get_jinja2_env(), output_dir, comparisons, args.compare_threshold)
+
     results.render(
         output_dir,
         args.output_html,
         local_site_mode=args.local_site_mode,
         test_suite_descriptors=test_suite_descriptors,
         source_repo_url_prefix=args.test_source_url_prefix,
+        has_dev_results=bool(dev_results_path),
     )
 
     return 0

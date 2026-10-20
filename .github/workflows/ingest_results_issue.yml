@@ -25,6 +25,7 @@ jobs:
           python-version: '3.x'
 
       - name: Extract and Validate JSON
+        id: extract
         env:
           ISSUE_BODY: ${{ github.event.issue.body }}
         run: python .github/scripts/process_results_issue.py
@@ -34,7 +35,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add results/
+          git add results/ dev_results/
 
           if ! git diff --staged --quiet; then
             git commit -m "Auto-ingest result from Issue #${{ github.event.issue.number }}"
@@ -50,6 +51,14 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh workflow run regenerate_site.yml --ref main
+
+      - name: Label dev result
+        if: steps.extract.outputs.is_dev_result == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh label create dev-result --color FBCA04 --description "Results from a xemu PR/CI build" --force
+          gh issue edit ${{ github.event.issue.number }} --add-label dev-result
 
       - name: Close Issue
         env:
