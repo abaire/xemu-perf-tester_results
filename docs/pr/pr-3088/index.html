@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PR #3088: Fix 1852 nv2a vsh cpu based register carryover - xemu perf</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>:root {
+    --bg: #ffffff;
+    --fg: #1f2328;
+    --muted: #656d76;
+    --border: #d0d7de;
+    --row-alt: #f6f8fa;
+    --improved: #1a7f37;
+    --improved-bg: #dafbe1;
+    --regressed: #cf222e;
+    --regressed-bg: #ffebe9;
+    --link: #0969da;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: #0d1117;
+        --fg: #e6edf3;
+        --muted: #8d96a0;
+        --border: #30363d;
+        --row-alt: #161b22;
+        --improved: #3fb950;
+        --improved-bg: #12261e;
+        --regressed: #f85149;
+        --regressed-bg: #2d1214;
+        --link: #4493f8;
+    }
+}
+
+body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    margin: 0 auto;
+    max-width: 1100px;
+    padding: 16px;
+}
+
+a { color: var(--link); }
+.muted { color: var(--muted); }
+.note { color: var(--muted); font-style: italic; }
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 8px 0 24px;
+    font-variant-numeric: tabular-nums;
+}
+
+th, td {
+    border-bottom: 1px solid var(--border);
+    padding: 4px 8px;
+    text-align: left;
+}
+
+th.num, td.num { text-align: right; }
+tbody tr:nth-child(even) { background: var(--row-alt); }
+tr.improved td.change { color: var(--improved); background: var(--improved-bg); font-weight: 600; }
+tr.regressed td.change { color: var(--regressed); background: var(--regressed-bg); font-weight: 600; }
+
+.summary span { margin-right: 16px; }
+.summary .improved { color: var(--improved); }
+.summary .regressed { color: var(--regressed); }
+
+.table-wrap { overflow-x: auto; }
+details > summary { cursor: pointer; margin: 8px 0; }</style>
+</head>
+<body>
+<p><a href="../">&larr; All PR comparisons</a></p>
+<h1>PR #3088: Fix 1852 nv2a vsh cpu based register carryover</h1>
+<p class="muted">
+    <a href="https://github.com/xemu-project/xemu/pull/3088">https://github.com/xemu-project/xemu/pull/3088</a><br>
+    Branch: <code>fix_1852_nv2a_vsh_cpu_based_register_carryover</code><br>
+    Latest CI run: <a href="https://github.com/xemu-project/xemu/actions/runs/39458043954">39458043954</a><br>
+    Values are average microseconds per test excluding the max outlier; lower is better.
+    Changes beyond 5% are highlighted.
+</p>
+
+
+<section>
+    <h2>
+        <code>xemu-0.8.138-9-g7850f6a9f4-7850f6a9f49c44e364ec2488491419e57dc4b6d6</code>
+        <span class="muted">(current head)</span>
+    </h2>
+    <p class="muted">Commit <code>ffce6589c8</code></p>
+
+    
+    <h3>Apple M5 Max &middot; GL &middot; Darwin</h3>
+    <p class="muted">
+        Apple M5 Max<br>
+        Baseline: <code>xemu-0.8.138-bf817de2b0354b7afe5e70efcd4f9c53bc7d4c67</code>
+        
+    </p>
+    
+    <p class="summary">
+        <span class="regressed">4 slower</span>
+        <span class="improved">6 faster</span>
+        
+        <span>Geomean change: -0.5%</span>
+        
+    </p>
+    
+    <details open>
+        <summary>53 tests</summary>
+        <div class="table-wrap">
+        <table>
+            <thead>
+            <tr><th>Test</th><th class="num">Baseline (us)</th><th class="num">PR (us)</th><th class="num">Change</th></tr>
+            </thead>
+            <tbody>
+            
+            <tr class="regressed">
+                <td>PrimitiveType::PrimitiveType-Poly</td>
+                <td class="num">661</td>
+                <td class="num">716</td>
+                <td class="num change">+8.3%</td>
+            </tr>
+            
+            <tr class="regressed">
+                <td>PrimitiveType::PrimitiveType-TriFan-vsh</td>
+                <td class="num">677</td>
+                <td class="num">726</td>
+                <td class="num change">+7.2%</td>
+            </tr>
+            
+            <tr class="regressed">
+                <td>PrimitiveType::PrimitiveType-Tris-vsh</td>
+                <td class="num">1805</td>
+                <td class="num">1905</td>
+                <td class="num change">+5.6%</td>
+            </tr>
+            
+            <tr class="regressed">
+                <td>ProgramThrash::ReuploadLong</td>
+                <td class="num">66947</td>
+                <td class="num">70623</td>
+                <td class="num change">+5.5%</td>
+            </tr>
+            
+            <tr class="unchanged">
+                <td>PrimitiveType::PrimitiveType-Lines-vsh</td>
+                <td class="num">1151</td>
+                <td class="num">1208</td>
+                <td class="num change">+5.0%</td>
+            </tr>
+            
+            <tr class="unchanged">
+                <td>TinyDraw::TinyDraw-arrays-vshlong</td>
+                <td class="num">35759</td>
+                <td class="num">37522</td>
+                <td class="num change">+4.9%</td>
+            </tr>
+            
+            <tr class="unchanged">
+                <td>FillRate::FillRate-Solid</td>
+                <td class="num">767</td>
+                <td class="num">797</td>
+                <td class="num change">+3.9%</td>
+            </tr>
+            
+            <tr class="unchanged">
+                <td>TinyDraw::TinyDraw-inlineelements-vshlong</td>
+                <td class="num">35161</td>
+                <td class="num">36483</td>
+                <td class="num change">+3.8%</td>
+            </tr>
+            
+            <tr class="unchanged">
+                <td>TinyDraw::TinyDraw-inlinebuffers-vshlong</td>
+                <td class="num">86925</td>
+                <td class="num">90158</td>
+                <td class="num change">+3.7%</td>
+            </tr>
+            
+            <tr class="unchanged">
+                <td>PrimitiveType::PrimitiveType-QuadStrip-vsh</td>
+                <td class="num">1143</td>
+                <td class="num">1174</td>
+                <td class="num change">+2.7%</td>
+            </tr>
+            
+            <tr class="unchanged">
+                <td>PrimitiveType::PrimitiveType-TriFan</td>
+                <td class="num">643</td>
+                <td class="num">659</td>
+                <td class="num change">+2.5%</td>
+            </tr>
+            
+            <tr class="unchanged">
+                <td>PrimitiveType::PrimitiveType-LLoop</td>
+                <td class="num">638</td>
+                <td class="num">653</td>
+                <td class="num change">+2.3%</td>
+            </tr>
+            
+            <tr class="unchanged">
+                <td>PrimitiveType::PrimitiveType-LStrip</td>
+                <td class="num">638</td>
+                <td class="num">653</td>
+                <td class="num change">+2.2%</td>
+            </tr>
+            
+            <tr class="unchanged">
+                <td>Vertex buffer allocation::TinyAlloc-arrays</td>
+                <td class="num">27414</td>
+                <td class="num">28012</td>
+                <td class="num change">+2.2%</td>
+            </tr>
+            
+            <tr class="unchanged">
+                <td>TinyDraw::TinyDraw-inlinebuffers-vsh</td>
+                <td class="num">85929</td>
+                <td class="num">87744</td>
+                <td class="num change">+2.1%</td>
+            </tr>
+            
+            <tr class="unchanged">
+                <td>High vertex count::HighVtxCount-inlinearrays</td>
+                <td class="num">54462</td>
+                <td class="num">55587</td>
+                <td class="num change">+2.1%</td>
+            </tr>
+            
+            <tr class="unchanged">
+                <td>TinyDraw::TinyDraw-arrays</td>
+                <td class="num">36021</td>
+                <td class="num">36763</td>
+                <td class="num change">+2.1%</td>
+            </tr>
+            
+            <tr class="unchanged">
+                <td>High vertex count::HighVtxCount-inlineelements</td>
+                <td class="num">3244</td>
+                <td class="num">3305</td>
+                <td class="num change">+1.9%</td>
+            </tr>
+            
+            <tr class="unchanged">
+                <td>High vertex count::HighVtxCount-inlinebuffers</td>
+                <td class="num">224001</td>
+                <td class="num">228127</td>
+                <td class="num change">+1.8%</td>
+            </tr>
+            
+            <tr class="unchanged">
+                <td>TinyDraw::TinyDraw-inlinebuffers</td>
+                <td class="num">86792</td>
+                <td class="num">88190</td>
+                <td class="num change">+1.6%</td>
+            </tr>
+            
+            <tr class="unchanged">
+                <td>ProgramThrash::Reupload</td>
+                <td class="num">41609</td>
+                <td class="num">42205</td>
+                <td class="num change">+1.4%</td>
+            </tr>
+            
+            <tr class="unchanged">
+                <td>SurfaceRendering::SurfaceRendering</td>
+                <td class="num">23659</td>
+                <td class="num">23978</td>
+                <td class="num change">+1.3%</td>
+            </tr>
+            
+            <tr class="unchanged">
+                <td>BusyPfifo::PFIFOSaturation</td>
+                <td class="num">56280</td>
+                <td class="num">57024</td>
+                <td class="num change">+1.3%</td>
+            </tr>
+            
+            <tr class="unchanged">
+                <td>TinyDraw::TinyDraw-inlineelements-vsh</td>
+                <td class="num">35121</td>
+                <td class="num">35537</td>
+                <td class="num change">+1.2%</td>
+            </tr>
+            
+            <tr class="unchanged">
+                <td>Vertex buffer allocation::MixedVtxAlloc-inlinebuffers</td>
+                <td class="num">550327</td>
+                <td class="num">556444</td>
+                <td class="num change">+1.1%</td>
+            </tr>
+            
+            <tr class="unchanged">
+                <td>Vertex buffer allocation::MixedVtxAlloc-inlinearrays</td>
+                <td class="num">128672</td>
+                <td class="num">129927</td>
+                <td class="num change">+1.0%</td>
+            </tr>
+            
+            <tr class="unchanged">
+                <td>TinyDraw::TinyDraw-arrays-vsh</td>
+                <td class="num">36140</td>
+                <td class="num">36388</td>
+                <td class="num change">+0.7%</td>
+            </tr>
+            
+            <tr class="unchanged">
+                <td>TinyDraw::TinyDraw-inlineelements</td>
+                <td class="num">35514</td>
+                <td class="num">35687</td>
+                <td class="num change">+0.5%</td>
+            </tr>
+            
+            <tr class="unchanged">
+                <td>Vertex buffer allocation::MixedVtxAlloc-arrays</td>
+                <td class="num">20764</td>
+                <td class="num">20799</td>
+                <td class="num change">+0.2%</td>
+            </tr>
+            
+            <tr class="unchanged">
+                <td>TinyDraw::TinyDraw-inlinearrays</td>
+                <td class="num">78571</td>
+                <td class="num">78671</td>
+                <td class="num change">+0.1%</td>
+            </tr>
+            
+            <tr class="unchanged">
+                <td>TinyDraw::TinyDraw-inlinearrays-vsh</td>
+                <td class="num">78923</td>
+                <td class="num">79014</td>
+                <td class="num change">+0.1%</td>
+            </tr>
+            
+            <tr class="unchanged">
+                <td>High vertex count::HighVtxCount-arrays</td>
+                <td class="num">36</td>
+                <td class="num">36</td>
+                <td class="num change">-0.1%</td>
+            </tr>
+            
+            <tr class="unchanged">
+                <td>ProgramThrash::Resident</td>
+                <td class="num">36016</td>
+                <td class="num">35954</td>
+                <td class="num change">-0.2%</td>
+            </tr>
+            
+            <tr class="unchanged">
+                <td>Vertex buffer allocation::MixedVtxAlloc-inlineelements</td>
+                <td class="num">28012</td>
+                <td class="num">27961</td>
+                <td class="num change">-0.2%</td>
+            </tr>
+            
+            <tr class="unchanged">
+                <td>FillRate::FillRate-Textured</td>
+                <td class="num">731</td>
+                <td class="num">728</td>
+                <td class="num change">-0.3%</td>
+            </tr>
+            
+            <tr class="unchanged">
+                <td>PrimitiveType::PrimitiveType-Tris</td>
+                <td class="num">1854</td>
+                <td class="num">1846</td>
+                <td class="num change">-0.4%</td>
+            </tr>
+            
+            <tr class="unchanged">
+                <td>Vertex buffer allocation::TinyAlloc-inlineelements</td>
+                <td class="num">28056</td>
+                <td class="num">27922</td>
+                <td class="num change">-0.5%</td>
+            </tr>
+            
+            <tr class="unchanged">
+                <td>TinyDraw::TinyDraw-inlinearrays-vshlong</td>
+                <td class="num">79693</td>
+                <td class="num">79238</td>
+                <td class="num change">-0.6%</td>
+            </tr>
+            
+            <tr class="unchanged">
+                <td>PrimitiveType::PrimitiveType-LLoop-vsh</td>
+                <td class="num">665</td>
+                <td class="num">661</td>
+                <td class="num change">-0.6%</td>
+            </tr>
+            
+            <tr class="unchanged">
+                <td>Vertex buffer allocation::TinyAlloc-inlinearrays</td>
+                <td class="num">44051</td>
+                <td class="num">43757</td>
+                <td class="num change">-0.7%</td>
+            </tr>
+            
+            <tr class="unchanged">
+                <td>PrimitiveType::PrimitiveType-LStrip-vsh</td>
+                <td class="num">665</td>
+                <td class="num">660</td>
+                <td class="num change">-0.7%</td>
+            </tr>
+            
+            <tr class="unchanged">
+                <td>PrimitiveType::PrimitiveType-QuadStrip</td>
+                <td class="num">1198</td>
+                <td class="num">1184</td>
+                <td class="num change">-1.2%</td>
+            </tr>
+            
+            <tr class="unchanged">
+                <td>Vertex buffer allocation::TinyAlloc-inlinebuffers</td>
+                <td class="num">56353</td>
+                <td class="num">55690</td>
+                <td class="num change">-1.2%</td>
+            </tr>
+            
+            <tr class="unchanged">
+                <td>PrimitiveType::PrimitiveType-Points</td>
+                <td class="num">629</td>
+                <td class="num">617</td>
+                <td class="num change">-1.9%</td>
+            </tr>
+            
+            <tr class="unchanged">
+                <td>PrimitiveType::PrimitiveType-TriStrip</td>
+                <td class="num">656</td>
+                <td class="num">642</td>
+                <td class="num change">-2.1%</td>
+            </tr>
+            
+            <tr class="unchanged">
+                <td>PrimitiveType::PrimitiveType-Points-vsh</td>
+                <td class="num">660</td>
+                <td class="num">642</td>
+                <td class="num change">-2.8%</td>
+            </tr>
+            
+            <tr class="unchanged">
+                <td>PrimitiveType::PrimitiveType-TriStrip-vsh</td>
+                <td class="num">702</td>
+                <td class="num">670</td>
+                <td class="num change">-4.5%</td>
+            </tr>
+            
+            <tr class="improved">
+                <td>PrimitiveType::PrimitiveType-Lines</td>
+                <td class="num">1298</td>
+                <td class="num">1173</td>
+                <td class="num change">-9.7%</td>
+            </tr>
+            
+            <tr class="improved">
+                <td>PrimitiveType::PrimitiveType-Poly-vsh</td>
+                <td class="num">737</td>
+                <td class="num">662</td>
+                <td class="num change">-10.3%</td>
+            </tr>
+            
+            <tr class="improved">
+                <td>PrimitiveType::PrimitiveType-Quads</td>
+                <td class="num">2601</td>
+                <td class="num">2261</td>
+                <td class="num change">-13.1%</td>
+            </tr>
+            
+            <tr class="improved">
+                <td>SurfaceRendering::XemuSurfaceDownloadPath</td>
+                <td class="num">16028</td>
+                <td class="num">13717</td>
+                <td class="num change">-14.4%</td>
+            </tr>
+            
+            <tr class="improved">
+                <td>PrimitiveType::PrimitiveType-Quads-vsh</td>
+                <td class="num">2639</td>
+                <td class="num">2238</td>
+                <td class="num change">-15.2%</td>
+            </tr>
+            
+            <tr class="improved">
+                <td>UniformThrash::UniformThrash</td>
+                <td class="num">869</td>
+                <td class="num">716</td>
+                <td class="num change">-17.7%</td>
+            </tr>
+            
+            </tbody>
+        </table>
+        </div>
+    </details>
+    
+</section>
+
+</body>
+</html>
